@@ -82,7 +82,7 @@
     <div id="chargeWrap"><div id="chargeFill"></div></div>
     <div id="spellReadout">BUFFER EMPTY</div>
     <div id="buffer"><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div></div>
-    <div id="hint">按住滑鼠右鍵／方向鍵移動 · 左鍵或 Space 外放 · 中鍵或 Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
+    <div id="hint">按住滑鼠右鍵／方向鍵移動（移動中可左鍵施法） · 左鍵或 Space 外放 · 中鍵或 Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
   </div>
 
   <div id="startOverlay" class="overlay">
@@ -90,7 +90,7 @@
       <h1>五相戰鬥場</h1>
       <div class="sub">HTML 即時試玩 · Direct Steering + Wall Slide</div>
       <div class="controls">
-        <div><kbd>右鍵</kbd> 按住朝游標移動</div><div><kbd>↑↓←→</kbd> 備用移動</div>
+        <div><kbd>右鍵</kbd> 按住移動，可同時左鍵施法</div><div><kbd>↑↓←→</kbd> 備用移動</div>
         <div><kbd>Q W E D F</kbd> 輸入五相</div><div><kbd>X</kbd> 撤銷／<kbd>⌫</kbd> 清空</div>
         <div><kbd>左鍵</kbd>／<kbd>Space</kbd> 外放</div><div><kbd>中鍵</kbd>／<kbd>Shift</kbd> 自身</div>
       </div>
@@ -161,8 +161,25 @@ canvas.addEventListener('contextmenu',e=>e.preventDefault());canvas.addEventList
 canvas.addEventListener('pointermove',pointerPos);
 canvas.addEventListener('pointerenter',pointerPos);
 canvas.addEventListener('pointerleave',()=>mouse.inside=false);
-canvas.addEventListener('pointerdown',e=>{pointerPos(e);if(!state?.running||state.paused||state.over)return;e.preventDefault();canvas.setPointerCapture?.(e.pointerId);if(e.button===2)mouse.right=true;else if(e.button===0)startExternal('mouse');else if(e.button===1)trySelfCast();});
-window.addEventListener('pointerup',e=>{if(e.button===2)mouse.right=false;else if(e.button===0)endExternal('mouse');});
+// MouseEvent is intentional here. PointerEvent only emits pointerdown for the first
+// pressed mouse button and pointerup for the last released button, which prevents
+// left-click casting while RMB movement is held. mousedown/mouseup fire per button.
+canvas.addEventListener('mousedown',e=>{
+ pointerPos(e);
+ if(!state?.running||state.paused||state.over)return;
+ e.preventDefault();
+ if(e.button===2)mouse.right=true;
+ else if(e.button===0)startExternal('mouse');
+ else if(e.button===1)trySelfCast();
+});
+window.addEventListener('mouseup',e=>{
+ if(e.button===2)mouse.right=false;
+ else if(e.button===0)endExternal('mouse');
+});
+window.addEventListener('blur',()=>{
+ mouse.right=false;
+ if(castState?.source==='mouse')endExternal('mouse');
+});
 window.addEventListener('keydown',e=>{
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Backspace'].includes(e.code))e.preventDefault();
  if(e.code==='Enter'&&state?.over){resetGame();return}
