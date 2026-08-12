@@ -82,15 +82,15 @@
     <div id="chargeWrap"><div id="chargeFill"></div></div>
     <div id="spellReadout">BUFFER EMPTY</div>
     <div id="buffer"><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div></div>
-    <div id="hint">右鍵點地移動（LoL 式）；角色會自動走到點擊位置 · 移動中可自由組式／施法 · D=風 · F=雷 · FFF+自身=閃現 · Space 外放 · Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
+    <div id="hint">右鍵點一下＝走到目的地；右鍵按住＝持續追隨游標（LoL 式） · 移動中可自由組式／施法 · D=風 · F=雷 · FFF+自身=閃現 · Space 外放 · Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
   </div>
 
   <div id="startOverlay" class="overlay">
     <div class="card">
       <h1>五相戰鬥場</h1>
-      <div class="sub">HTML 即時試玩 · LoL 式右鍵點地移動 + 移動中施法</div>
+      <div class="sub">HTML 即時試玩 · LoL 式右鍵點地／按住持續移動 + 移動中施法</div>
       <div class="controls">
-        <div><kbd>右鍵</kbd> 點一下設定移動目的地</div><div><kbd>左鍵／中鍵</kbd> 移動途中直接施法</div>
+        <div><kbd>右鍵</kbd> 點一下走到目的地；按住則持續追著游標移動</div><div><kbd>左鍵／中鍵</kbd> 移動途中直接施法</div>
         <div><kbd>Q W E D F</kbd> 五相（D=風／F=雷）</div><div><kbd>X</kbd> 撤銷／<kbd>⌫</kbd> 清空</div>
         <div><kbd>左鍵</kbd>／<kbd>Space</kbd> 外放</div><div><kbd>中鍵</kbd>／<kbd>Shift</kbd> 自身</div>
       </div>
@@ -173,9 +173,10 @@ function applyMouseButtons(nextButtons,allowPresses){
  if(leftWas&&!leftNow)endExternal('mouse');
  
 
- // Accept new presses only over gameplay. RMB is a one-shot move command, like LoL.
- // LMB/MMB stay independent so casting never cancels the current destination.
- if(allowPresses&&!rightWas&&rightNow)setMoveTarget(mouse.x,mouse.y);
+ // LoL-style RMB: click once sets a persistent destination; while held,
+ // continuously retarget toward the current cursor position. Releasing RMB keeps
+ // the last target, so the player finishes moving there. LMB/MMB remain independent.
+ if(allowPresses&&rightNow)setMoveTarget(mouse.x,mouse.y,!rightWas);
  if(allowPresses&&!leftWas&&leftNow)startExternal('mouse');
  if(allowPresses&&!middleWas&&middleNow)trySelfCast();
 
@@ -245,7 +246,7 @@ function startExternal(source){
 function endExternal(source){if(!castState||castState.source!==source)return;if(castState.type==='charge')releaseBoulder();else if(castState.type==='beam'){castState=null;sfx('beamEnd');}}
 function trySelfCast(){if(castState||!state.running||state.paused||state.over)return;state.attempts++;const code=bufferCode();const r=code==='FFF'?RECIPES.FFF_SELF:RECIPES[code];if(!r||r.mode!=='self'){state.attempts--;failCast(r?'此配方必須使用「外放施法」':'自身公式無效');return}consumeBuffer();if(r.type==='dash')startDash();}
 function aimDir(){return normalize(mouse.x-player.x,mouse.y-player.y)}
-function setMoveTarget(x,y){const tx=clamp(x,ARENA.left+player.r,ARENA.right-player.r),ty=clamp(y,ARENA.top+player.r,ARENA.bottom-player.r);player.moveTarget={x:tx,y:ty};player.movePing={x:tx,y:ty,life:.55,max:.55};}
+function setMoveTarget(x,y,showPing=true){const tx=clamp(x,ARENA.left+player.r,ARENA.right-player.r),ty=clamp(y,ARENA.top+player.r,ARENA.bottom-player.r);player.moveTarget={x:tx,y:ty};if(showPing)player.movePing={x:tx,y:ty,life:.55,max:.55};}
 function movementDir(){let x=0,y=0;if(keys.has('ArrowLeft'))x--;if(keys.has('ArrowRight'))x++;if(keys.has('ArrowUp'))y--;if(keys.has('ArrowDown'))y++;if(x||y){player.moveTarget=null;return normalize(x,y);}if(player.moveTarget){const dx=player.moveTarget.x-player.x,dy=player.moveTarget.y-player.y,d=Math.hypot(dx,dy);if(d<=7){player.x=player.moveTarget.x;player.y=player.moveTarget.y;player.moveTarget=null;return{x:0,y:0};}return{x:dx/d,y:dy/d};}return{x:0,y:0}}
 
 function castFireCone(a){zones.push({type:'fire',x:player.x,y:player.y,dx:a.x,dy:a.y,r:4*PPM,angle:75*Math.PI/180,life:2,max:2,tick:0});waves.push({type:'cone',x:player.x,y:player.y,dx:a.x,dy:a.y,r:10,life:.35,max:.35,color:'#ff6338'});burst(player.x+a.x*50,player.y+a.y*50,24,'#ff673a',150);toast('火焰扇形 · Buffer 已清除');sfx('fire');}
