@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>倖存撤離者｜五相戰鬥 HTML 試玩 v1.1</title>
+<title>倖存撤離者｜五相戰鬥 HTML 試玩 v1.3</title>
 <style>
   :root{
     --ink:#f5f1e8;--muted:#b9c3ca;--panel:rgba(9,13,18,.82);--line:rgba(226,184,101,.5);
@@ -31,8 +31,8 @@
   #toast{position:absolute;left:50%;top:13%;transform:translate(-50%,-10px);padding:9px 18px;border-radius:8px;background:rgba(6,9,12,.88);border:1px solid var(--line);font-size:clamp(11px,1.08vw,17px);font-weight:700;opacity:0;transition:.16s;white-space:nowrap}
   #toast.show{opacity:1;transform:translate(-50%,0)}
   #toast.fail{border-color:#ff5261;color:#ffb7bd;box-shadow:0 0 25px rgba(255,45,65,.3)}
-  #guideToggle,#fullscreenBtn{position:absolute;top:2%;pointer-events:auto;border:1px solid var(--line);background:var(--panel);color:#f5dfb5;border-radius:6px;padding:7px 11px;font:700 clamp(10px,.9vw,14px) inherit;cursor:pointer}
-  #guideToggle{right:2%}#fullscreenBtn{right:10.2%}
+  #guideToggle,#fullscreenBtn,#refreshBtn{position:absolute;top:2%;pointer-events:auto;border:1px solid var(--line);background:var(--panel);color:#f5dfb5;border-radius:6px;padding:7px 11px;font:700 clamp(10px,.9vw,14px) inherit;cursor:pointer}
+  #guideToggle{right:2%}#fullscreenBtn{right:10.2%}#refreshBtn{right:18.7%}#buildBadge{position:absolute;right:2%;bottom:2%;padding:5px 9px;border-radius:5px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.68);font-size:clamp(8px,.72vw,11px);letter-spacing:.04em;pointer-events:none}
   #guide{position:absolute;right:2%;top:7%;width:min(390px,31%);padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:9px;backdrop-filter:blur(7px);transition:.18s;pointer-events:none}
   #guide.hidden{opacity:0;transform:translateX(20px)}
   #guide h3{margin:0 0 9px;color:#f1cc86;font-size:clamp(12px,1.15vw,18px)}
@@ -52,7 +52,7 @@
   button.primary:hover{filter:brightness(1.12)}
   #loading{color:#aeb7bd;font-size:13px;margin-top:12px}
   #deathCard h1{color:#ff7882}.result{font-size:clamp(14px,1.45vw,22px);line-height:1.8;margin:14px 0;color:#d9e0e3}
-  @media(max-aspect-ratio:1/1){#guide{width:43%}.top-left{width:42%}#fullscreenBtn{display:none}}
+  @media(max-aspect-ratio:1/1){#guide{width:43%}.top-left{width:42%}#fullscreenBtn{display:none}#refreshBtn{right:12%}}
 </style>
 </head>
 <body>
@@ -60,11 +60,12 @@
   <canvas id="game" width="1536" height="1024" aria-label="五相戰鬥試玩場"></canvas>
   <div class="hud">
     <div class="top-left">
-      <div class="brand">SURVIVOR RAIDERS · SPK2 BROWSER PROTOTYPE · LOL MOVE v1.2</div>
+      <div class="brand">SURVIVOR RAIDERS · SPK2 BROWSER PROTOTYPE · LOL MOVE v1.3</div>
       <div class="hp-frame"><div id="hpFill" class="hp-fill"></div></div>
       <div class="hp-line"><span id="hpText">HP 100 / 100</span><span id="timeText">00:00</span></div>
       <div id="stats">擊殺 0　傷害 0　敵人 0</div>
     </div>
+    <button id="refreshBtn" title="使用唯一網址參數重新抓取 GitHub Pages 最新 index.html">強制更新</button>
     <button id="fullscreenBtn">全螢幕</button>
     <button id="guideToggle">配方 H</button>
     <div id="guide">
@@ -83,6 +84,7 @@
     <div id="spellReadout">BUFFER EMPTY</div>
     <div id="buffer"><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div></div>
     <div id="hint">右鍵點一下＝走到目的地；右鍵按住＝持續追隨游標（LoL 式） · 移動中可自由組式／施法 · D=風 · F=雷 · FFF+自身=閃現 · Space 外放 · Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
+    <div id="buildBadge">BUILD 2026.08.12.1831</div>
   </div>
 
   <div id="startOverlay" class="overlay">
@@ -118,6 +120,75 @@
     </div>
   </div>
 </div>
+<script>
+/* GitHub Pages single-file build/version cache control. */
+(() => {
+  'use strict';
+  const BUILD_VERSION = '2026.08.12.1831';
+  const STORAGE_KEY = 'survivor_raiders_spk2_build';
+  const RELOAD_KEY = 'survivor_raiders_spk2_reload_' + BUILD_VERSION;
+  window.SR_BUILD_VERSION = BUILD_VERSION;
+
+  async function clearAppCaches() {
+    try {
+      if ('caches' in window) {
+        const names = await caches.keys();
+        await Promise.all(names.map(name => caches.delete(name)));
+      }
+    } catch (err) { console.warn('[Build] CacheStorage clear skipped:', err); }
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(reg => reg.unregister()));
+      }
+    } catch (err) { console.warn('[Build] Service worker cleanup skipped:', err); }
+  }
+
+  async function forceLatestReload() {
+    await clearAppCaches();
+    try { localStorage.setItem(STORAGE_KEY, BUILD_VERSION); } catch (_) {}
+    const url = new URL(location.href);
+    url.searchParams.set('v', BUILD_VERSION);
+    url.searchParams.set('_fresh', Date.now().toString());
+    location.replace(url.toString());
+  }
+
+  window.forceLatestReload = forceLatestReload;
+
+  (async () => {
+    let stored = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch (_) {}
+    const url = new URL(location.href);
+    const urlVersion = url.searchParams.get('v');
+    const versionChanged = stored !== BUILD_VERSION;
+    const urlOutdated = urlVersion !== BUILD_VERSION;
+
+    if (!versionChanged && !urlOutdated) return;
+
+    await clearAppCaches();
+    try { localStorage.setItem(STORAGE_KEY, BUILD_VERSION); } catch (_) {}
+
+    // Reload once per build with a unique query string. This avoids reload loops
+    // while making GitHub Pages/CDN/browser treat the request as a fresh URL.
+    let alreadyReloaded = false;
+    try { alreadyReloaded = sessionStorage.getItem(RELOAD_KEY) === '1'; } catch (_) {}
+    if (!alreadyReloaded) {
+      try { sessionStorage.setItem(RELOAD_KEY, '1'); } catch (_) {}
+      url.searchParams.set('v', BUILD_VERSION);
+      url.searchParams.set('_fresh', Date.now().toString());
+      location.replace(url.toString());
+    }
+  })();
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('refreshBtn');
+    if (btn) btn.addEventListener('click', () => forceLatestReload());
+    const badge = document.getElementById('buildBadge');
+    if (badge) badge.textContent = 'BUILD ' + BUILD_VERSION;
+  });
+})();
+</script>
 <script>
 (() => {
 'use strict';
