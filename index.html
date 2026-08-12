@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>倖存撤離者｜五相戰鬥 HTML 試玩</title>
+<title>倖存撤離者｜五相戰鬥 HTML 試玩 v1.1</title>
 <style>
   :root{
     --ink:#f5f1e8;--muted:#b9c3ca;--panel:rgba(9,13,18,.82);--line:rgba(226,184,101,.5);
@@ -60,7 +60,7 @@
   <canvas id="game" width="1536" height="1024" aria-label="五相戰鬥試玩場"></canvas>
   <div class="hud">
     <div class="top-left">
-      <div class="brand">SURVIVOR RAIDERS · SPK2 BROWSER PROTOTYPE</div>
+      <div class="brand">SURVIVOR RAIDERS · SPK2 BROWSER PROTOTYPE · LOL MOVE v1.2</div>
       <div class="hp-frame"><div id="hpFill" class="hp-fill"></div></div>
       <div class="hp-line"><span id="hpText">HP 100 / 100</span><span id="timeText">00:00</span></div>
       <div id="stats">擊殺 0　傷害 0　敵人 0</div>
@@ -73,25 +73,25 @@
       <div class="recipe"><span class="keys">WWW</span><span>游標水域持續傷害／緩速 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">EEE</span><span>按住蓄力石砲，放開發射 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">QE / EQ</span><span>爆炸火石砲 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys">DDD</span><span>按住維持雷電射線 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys">QD / DQ</span><span>火雷射線 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys">FFF</span><span>風壓扇形傷害／擊退 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys">DDDD</span><span>四格雷步／短暫無敵 <span class="mode self">自身</span></span></div>
+      <div class="recipe"><span class="keys">DDD</span><span>風壓扇形傷害／擊退 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys">QF / FQ</span><span>火雷射線 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys">FFF</span><span>按住維持雷電射線 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys">FFF</span><span>三格閃現／短暫無敵 <span class="mode self">自身</span></span></div>
     </div>
     <div id="toast"></div>
     <div id="chargeWrap"><div id="chargeFill"></div></div>
     <div id="spellReadout">BUFFER EMPTY</div>
     <div id="buffer"><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div></div>
-    <div id="hint">按住滑鼠右鍵／方向鍵移動（移動中可左鍵施法） · 左鍵或 Space 外放 · 中鍵或 Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
+    <div id="hint">右鍵點地移動（LoL 式）；角色會自動走到點擊位置 · 移動中可自由組式／施法 · D=風 · F=雷 · FFF+自身=閃現 · Space 外放 · Shift 自身 · X 撤銷 · Backspace 清空 · Esc 暫停</div>
   </div>
 
   <div id="startOverlay" class="overlay">
     <div class="card">
       <h1>五相戰鬥場</h1>
-      <div class="sub">HTML 即時試玩 · Direct Steering + Wall Slide</div>
+      <div class="sub">HTML 即時試玩 · LoL 式右鍵點地移動 + 移動中施法</div>
       <div class="controls">
-        <div><kbd>右鍵</kbd> 按住移動，可同時左鍵施法</div><div><kbd>↑↓←→</kbd> 備用移動</div>
-        <div><kbd>Q W E D F</kbd> 輸入五相</div><div><kbd>X</kbd> 撤銷／<kbd>⌫</kbd> 清空</div>
+        <div><kbd>右鍵</kbd> 點一下設定移動目的地</div><div><kbd>左鍵／中鍵</kbd> 移動途中直接施法</div>
+        <div><kbd>Q W E D F</kbd> 五相（D=風／F=雷）</div><div><kbd>X</kbd> 撤銷／<kbd>⌫</kbd> 清空</div>
         <div><kbd>左鍵</kbd>／<kbd>Space</kbd> 外放</div><div><kbd>中鍵</kbd>／<kbd>Shift</kbd> 自身</div>
       </div>
       <div>成功或失敗施法都會立即清除 Buffer；所有攻擊都有傷害、受擊閃爍、血條與擊殺回饋。</div>
@@ -136,17 +136,17 @@ let loaded=0;
 Object.entries(ASSETS).forEach(([k,src])=>{const im=new Image();im.onload=()=>{images[k]=im;if(++loaded===3){ui.startBtn.disabled=false;ui.startBtn.textContent='開始戰鬥';ui.loading.textContent='素材載入完成';drawIdle();}};im.onerror=()=>{ui.loading.textContent='素材載入失敗：'+k};im.src=src;});
 
 const ELEMENTS={
- Q:{id:'fire',label:'Q',name:'火',color:'#ff6438'},W:{id:'water',label:'W',name:'水',color:'#48a9ff'},E:{id:'rock',label:'E',name:'地',color:'#c49a62'},D:{id:'lightning',label:'D',name:'雷',color:'#bd91ff'},F:{id:'wind',label:'F',name:'風',color:'#77efbd'}
+ Q:{id:'fire',label:'Q',name:'火',color:'#ff6438'},W:{id:'water',label:'W',name:'水',color:'#48a9ff'},E:{id:'rock',label:'E',name:'地',color:'#c49a62'},D:{id:'wind',label:'D',name:'風',color:'#77efbd'},F:{id:'lightning',label:'F',name:'雷',color:'#bd91ff'}
 };
 const RECIPES={
- QQQ:{name:'火焰扇形',mode:'external',type:'fireCone'},WWW:{name:'潮汐水域',mode:'external',type:'waterZone'},EEE:{name:'蓄力石砲',mode:'external',type:'boulder'},QE:{name:'爆炎石砲',mode:'external',type:'fireBoulder'},EQ:{name:'爆炎石砲',mode:'external',type:'fireBoulder'},DDD:{name:'雷電射線',mode:'external',type:'beam'},QD:{name:'火雷射線',mode:'external',type:'fireBeam'},DQ:{name:'火雷射線',mode:'external',type:'fireBeam'},FFF:{name:'風壓震退',mode:'external',type:'windCone'},DDDD:{name:'四格雷步',mode:'self',type:'dash'}
+ QQQ:{name:'火焰扇形',mode:'external',type:'fireCone'},WWW:{name:'潮汐水域',mode:'external',type:'waterZone'},EEE:{name:'蓄力石砲',mode:'external',type:'boulder'},QE:{name:'爆炎石砲',mode:'external',type:'fireBoulder'},EQ:{name:'爆炎石砲',mode:'external',type:'fireBoulder'},DDD:{name:'風壓震退',mode:'external',type:'windCone'},FFF:{name:'雷電射線',mode:'external',type:'beam'},QF:{name:'火雷射線',mode:'external',type:'fireBeam'},FQ:{name:'火雷射線',mode:'external',type:'fireBeam'},FFF_SELF:{name:'三格閃現',mode:'self',type:'dash'}
 };
-let state,player,enemies=[],projectiles=[],zones=[],particles=[],texts=[],waves=[],castState=null,buffer=[],keys=new Set(),mouse={x:W/2,y:H/2,right:false,inside:false},lastFrame=0,toastTimer=0,guideVisible=true,audio=null;
+let state,player,enemies=[],projectiles=[],zones=[],particles=[],texts=[],waves=[],castState=null,buffer=[],keys=new Set(),mouse={x:W/2,y:H/2,inside:false,buttonsMask:0},lastFrame=0,toastTimer=0,guideVisible=true,audio=null;
 
 function newState(){return{running:false,paused:false,over:false,time:0,kills:0,totalDamage:0,attempts:0,failures:0,shake:0,flash:0,enemyCount:+ui.count.value,lastUi:-1};}
-function newPlayer(){return{x:(ARENA.left+ARENA.right)/2,y:(ARENA.top+ARENA.bottom)/2,r:23,hp:100,maxHp:100,speed:6*PPM,hitCooldown:0,invuln:0,flash:0,facing:1,lastMove:{x:1,y:0},dash:null,trails:[]};}
+function newPlayer(){const x=(ARENA.left+ARENA.right)/2,y=(ARENA.top+ARENA.bottom)/2;return{x,y,r:23,hp:100,maxHp:100,speed:6*PPM,hitCooldown:0,invuln:0,flash:0,facing:1,lastMove:{x:1,y:0},dash:null,trails:[],moveTarget:null,movePing:null};}
 function resetGame(){
- state=newState();player=newPlayer();enemies=[];projectiles=[];zones=[];particles=[];texts=[];waves=[];castState=null;buffer=[];keys.clear();mouse.right=false;
+ state=newState();player=newPlayer();enemies=[];projectiles=[];zones=[];particles=[];texts=[];waves=[];castState=null;buffer=[];keys.clear();mouse.buttonsMask=0;
  for(let i=0;i<state.enemyCount;i++)enemies.push(makeEnemy(i,true));
  updateBufferUI();ui.death.classList.add('hidden');ui.start.classList.add('hidden');state.running=true;state.paused=false;lastFrame=performance.now();
  toast(`敵人 ${state.enemyCount} · 戰鬥開始`);ensureAudio();requestAnimationFrame(loop);
@@ -156,30 +156,54 @@ function randomEdgePoint(delay=0){
  let p,tries=0;do{const s=Math.floor(Math.random()*4),m=36;if(s===0)p={x:ARENA.left+m,y:rand(ARENA.top+m,ARENA.bottom-m)};else if(s===1)p={x:ARENA.right-m,y:rand(ARENA.top+m,ARENA.bottom-m)};else if(s===2)p={x:rand(ARENA.left+m,ARENA.right-m),y:ARENA.top+m};else p={x:rand(ARENA.left+m,ARENA.right-m),y:ARENA.bottom-m};tries++;}while(player&&dist2(p.x,p.y,player.x,player.y)<260*260&&tries<20);return p;
 }
 function rand(a,b){return a+Math.random()*(b-a)}function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function dist2(ax,ay,bx,by){const x=ax-bx,y=ay-by;return x*x+y*y}function normalize(x,y){const l=Math.hypot(x,y)||1;return{x:x/l,y:y/l}}
-function pointerPos(e){const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height;mouse.inside=true;}
-canvas.addEventListener('contextmenu',e=>e.preventDefault());canvas.addEventListener('auxclick',e=>e.preventDefault());
-canvas.addEventListener('pointermove',pointerPos);
-canvas.addEventListener('pointerenter',pointerPos);
-canvas.addEventListener('pointerleave',()=>mouse.inside=false);
-// MouseEvent is intentional here. PointerEvent only emits pointerdown for the first
-// pressed mouse button and pointerup for the last released button, which prevents
-// left-click casting while RMB movement is held. mousedown/mouseup fire per button.
-canvas.addEventListener('mousedown',e=>{
+function pointerPos(e){
+ const r=canvas.getBoundingClientRect();
+ mouse.x=(e.clientX-r.left)*W/r.width;
+ mouse.y=(e.clientY-r.top)*H/r.height;
+ mouse.inside=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+}
+function isUiPointerTarget(target){return target instanceof Element&&!!target.closest('button,select,.overlay');}
+function applyMouseButtons(nextButtons,allowPresses){
+ const next=Number.isFinite(nextButtons)?nextButtons:0;
+ const previous=mouse.buttonsMask||0;
+ const leftWas=(previous&1)!==0,rightWas=(previous&2)!==0,middleWas=(previous&4)!==0;
+ const leftNow=(next&1)!==0,rightNow=(next&2)!==0,middleNow=(next&4)!==0;
+
+ // Releases must always be handled, even when the pointer leaves the arena.
+ if(leftWas&&!leftNow)endExternal('mouse');
+ 
+
+ // Accept new presses only over gameplay. RMB is a one-shot move command, like LoL.
+ // LMB/MMB stay independent so casting never cancels the current destination.
+ if(allowPresses&&!rightWas&&rightNow)setMoveTarget(mouse.x,mouse.y);
+ if(allowPresses&&!leftWas&&leftNow)startExternal('mouse');
+ if(allowPresses&&!middleWas&&middleNow)trySelfCast();
+
+ mouse.buttonsMask=next;
+}
+function handleMouseState(e){
+ if(e.pointerType&&e.pointerType!=='mouse')return;
  pointerPos(e);
- if(!state?.running||state.paused||state.over)return;
- e.preventDefault();
- if(e.button===2)mouse.right=true;
- else if(e.button===0)startExternal('mouse');
- else if(e.button===1)trySelfCast();
-});
-window.addEventListener('mouseup',e=>{
- if(e.button===2)mouse.right=false;
- else if(e.button===0)endExternal('mouse');
-});
-window.addEventListener('blur',()=>{
- mouse.right=false;
- if(castState?.source==='mouse')endExternal('mouse');
-});
+ const gameplayTarget=mouse.inside&&!isUiPointerTarget(e.target);
+ const allowPresses=gameplayTarget&&!!state?.running&&!state.paused&&!state.over;
+ // Only suppress middle-button autoscroll. Preventing pointerdown can suppress the
+ // compatibility mousedown that carries the second button in a chord.
+ if(gameplayTarget&&e.type==='mousedown'&&e.button===1&&e.cancelable)e.preventDefault();
+ applyMouseButtons(e.buttons,allowPresses);
+}
+
+// Mouse events fire once per changed button. Mouse/pointer move also carries the full
+// `buttons` bitmask (1=LMB, 2=RMB, 4=MMB), providing a fallback for chorded input.
+// Intentionally do NOT listen to or prevent pointerdown/pointerup.
+window.addEventListener('mousedown',handleMouseState,{capture:true});
+window.addEventListener('mouseup',handleMouseState,{capture:true});
+window.addEventListener('mousemove',handleMouseState,{capture:true});
+window.addEventListener('pointermove',handleMouseState,{capture:true});
+window.addEventListener('pointercancel',()=>applyMouseButtons(0,false),{capture:true});
+window.addEventListener('contextmenu',e=>{pointerPos(e);if(mouse.inside)e.preventDefault();},{capture:true});
+window.addEventListener('auxclick',e=>{pointerPos(e);if(mouse.inside)e.preventDefault();},{capture:true});
+window.addEventListener('blur',()=>applyMouseButtons(0,false));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)applyMouseButtons(0,false);});
 window.addEventListener('keydown',e=>{
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Backspace'].includes(e.code))e.preventDefault();
  if(e.code==='Enter'&&state?.over){resetGame();return}
@@ -203,7 +227,7 @@ function addBuffer(k){if(castState){toast('施法維持中，暫停組式',true)
 function bufferCode(){return buffer.join('')}
 function updateBufferUI(){
  ui.buffer.forEach((c,i)=>{c.className='cell';const k=buffer[i];if(k){c.textContent=k;c.classList.add('filled',ELEMENTS[k].id);}else c.textContent='－';});
- const recipe=RECIPES[bufferCode()];if(recipe)ui.spell.textContent=`${recipe.name} · ${recipe.mode==='self'?'自身施法':'外放施法'}`;else if(buffer.length)ui.spell.textContent=`未完成配方：${bufferCode()}`;else ui.spell.textContent='BUFFER EMPTY';
+ const code=bufferCode(),recipe=RECIPES[code];if(code==='FFF')ui.spell.textContent='FFF · 雷電射線（外放）／三格閃現（自身）';else if(recipe)ui.spell.textContent=`${recipe.name} · ${recipe.mode==='self'?'自身施法':'外放施法'}`;else if(buffer.length)ui.spell.textContent=`未完成配方：${code}`;else ui.spell.textContent='BUFFER EMPTY';
 }
 function consumeBuffer(){buffer=[];updateBufferUI();}
 function failCast(msg='公式無效'){state.attempts++;state.failures++;consumeBuffer();state.flash=.18;toast(`${msg} · Buffer 已清除`,true);sfx('fail');}
@@ -219,15 +243,16 @@ function startExternal(source){
  }
 }
 function endExternal(source){if(!castState||castState.source!==source)return;if(castState.type==='charge')releaseBoulder();else if(castState.type==='beam'){castState=null;sfx('beamEnd');}}
-function trySelfCast(){if(castState||!state.running||state.paused||state.over)return;state.attempts++;const r=RECIPES[bufferCode()];if(!r||r.mode!=='self'){state.attempts--;failCast(r?'此配方必須使用「外放施法」':'自身公式無效');return}consumeBuffer();if(r.type==='dash')startDash();}
+function trySelfCast(){if(castState||!state.running||state.paused||state.over)return;state.attempts++;const code=bufferCode();const r=code==='FFF'?RECIPES.FFF_SELF:RECIPES[code];if(!r||r.mode!=='self'){state.attempts--;failCast(r?'此配方必須使用「外放施法」':'自身公式無效');return}consumeBuffer();if(r.type==='dash')startDash();}
 function aimDir(){return normalize(mouse.x-player.x,mouse.y-player.y)}
-function movementDir(){let x=0,y=0;if(keys.has('ArrowLeft'))x--;if(keys.has('ArrowRight'))x++;if(keys.has('ArrowUp'))y--;if(keys.has('ArrowDown'))y++;if(x||y)return normalize(x,y);if(mouse.right)return normalize(mouse.x-player.x,mouse.y-player.y);return{x:0,y:0}}
+function setMoveTarget(x,y){const tx=clamp(x,ARENA.left+player.r,ARENA.right-player.r),ty=clamp(y,ARENA.top+player.r,ARENA.bottom-player.r);player.moveTarget={x:tx,y:ty};player.movePing={x:tx,y:ty,life:.55,max:.55};}
+function movementDir(){let x=0,y=0;if(keys.has('ArrowLeft'))x--;if(keys.has('ArrowRight'))x++;if(keys.has('ArrowUp'))y--;if(keys.has('ArrowDown'))y++;if(x||y){player.moveTarget=null;return normalize(x,y);}if(player.moveTarget){const dx=player.moveTarget.x-player.x,dy=player.moveTarget.y-player.y,d=Math.hypot(dx,dy);if(d<=7){player.x=player.moveTarget.x;player.y=player.moveTarget.y;player.moveTarget=null;return{x:0,y:0};}return{x:dx/d,y:dy/d};}return{x:0,y:0}}
 
 function castFireCone(a){zones.push({type:'fire',x:player.x,y:player.y,dx:a.x,dy:a.y,r:4*PPM,angle:75*Math.PI/180,life:2,max:2,tick:0});waves.push({type:'cone',x:player.x,y:player.y,dx:a.x,dy:a.y,r:10,life:.35,max:.35,color:'#ff6338'});burst(player.x+a.x*50,player.y+a.y*50,24,'#ff673a',150);toast('火焰扇形 · Buffer 已清除');sfx('fire');}
 function castWater(){const x=clamp(mouse.x,ARENA.left+40,ARENA.right-40),y=clamp(mouse.y,ARENA.top+40,ARENA.bottom-40);zones.push({type:'water',x,y,r:3*PPM,life:2,max:2,tick:0});waves.push({type:'circle',x,y,r:20,life:.5,max:.5,color:'#4badff'});burst(x,y,30,'#54baff',120);toast('潮汐水域 · Buffer 已清除');sfx('water');}
 function castWind(a){let hits=0;for(const e of enemies){if(e.dead)continue;const ox=e.x-player.x,oy=e.y-player.y,d=Math.hypot(ox,oy);if(d<=4*PPM&&d>0){const n={x:ox/d,y:oy/d};if(n.x*a.x+n.y*a.y>=Math.cos(Math.PI/4)){damageEnemy(e,25,player.x,player.y,310);hits++;}}}waves.push({type:'cone',x:player.x,y:player.y,dx:a.x,dy:a.y,r:15,life:.4,max:.4,color:'#76efbd'});burst(player.x+a.x*80,player.y+a.y*80,30,'#8ff6ce',220);toast(`風壓震退 · 命中 ${hits}`);sfx('wind');}
 function releaseBoulder(){const cs=castState;if(!cs)return;const f=clamp((state.time-cs.start)/1.2,0,1),a=aimDir(),damage=30+(120-30)*f;projectiles.push({x:player.x+a.x*36,y:player.y+a.y*36,vx:a.x*12*PPM,vy:a.y*12*PPM,r:12+f*20,damage:damage*(cs.fire?1.2:1),fire:cs.fire,life:1.8});burst(player.x+a.x*38,player.y+a.y*38,14,cs.fire?'#ff6a2e':'#d2ad73',120);toast(`${cs.fire?'爆炎石砲':'石砲'} ${Math.round(damage)} 傷害`);castState=null;showCharge(false);sfx('boulder');}
-function startDash(){const m=movementDir(),a=(m.x||m.y)?m:aimDir(),distance=4*PPM,sx=player.x,sy=player.y,ex=clamp(sx+a.x*distance,ARENA.left+player.r,ARENA.right-player.r),ey=clamp(sy+a.y*distance,ARENA.top+player.r,ARENA.bottom-player.r);player.dash={sx,sy,ex,ey,t:0,duration:.12};player.invuln=.2;waves.push({type:'dash',x:sx,y:sy,x2:ex,y2:ey,life:.3,max:.3,color:'#d5c0ff'});toast('四格雷步 · 無敵 0.2 秒');sfx('dash');}
+function startDash(){const m=movementDir(),a=(m.x||m.y)?m:aimDir(),distance=4*PPM,sx=player.x,sy=player.y,ex=clamp(sx+a.x*distance,ARENA.left+player.r,ARENA.right-player.r),ey=clamp(sy+a.y*distance,ARENA.top+player.r,ARENA.bottom-player.r);player.dash={sx,sy,ex,ey,t:0,duration:.12};player.invuln=.2;waves.push({type:'dash',x:sx,y:sy,x2:ex,y2:ey,life:.3,max:.3,color:'#d5c0ff'});toast('三格閃現 · 無敵 0.2 秒');sfx('dash');}
 function showCharge(on){ui.chargeWrap.style.opacity=on?'1':'0';if(!on)ui.chargeFill.style.width='0%'}
 
 function update(dt){
@@ -235,7 +260,7 @@ function update(dt){
  if(player.dash){const d=player.dash;d.t+=dt;const q=clamp(d.t/d.duration,0,1),s=q*q*(3-2*q);player.x=d.sx+(d.ex-d.sx)*s;player.y=d.sy+(d.ey-d.sy)*s;if(Math.random()<.65)player.trails.push({x:player.x,y:player.y,life:.22,max:.22});if(q>=1)player.dash=null;}else{
   const m=movementDir();if(m.x||m.y){player.lastMove=m;player.facing=m.x<0?-1:1;const step=player.speed*dt;player.x=clamp(player.x+m.x*step,ARENA.left+player.r,ARENA.right-player.r);player.y=clamp(player.y+m.y*step,ARENA.top+player.r,ARENA.bottom-player.r);}
  }
- player.trails.forEach(t=>t.life-=dt);player.trails=player.trails.filter(t=>t.life>0);
+ player.trails.forEach(t=>t.life-=dt);player.trails=player.trails.filter(t=>t.life>0);if(player.movePing){player.movePing.life-=dt;if(player.movePing.life<=0)player.movePing=null;}
  if(castState?.type==='charge'){const f=clamp((state.time-castState.start)/1.2,0,1);ui.chargeFill.style.width=(f*100)+'%';castState.aim=aimDir();}
  if(castState?.type==='beam')updateBeam(dt,castState.fire);
  updateZones(dt);updateProjectiles(dt);updateEnemies(dt);updateFx(dt);
@@ -266,14 +291,14 @@ function takePlayerDamage(amount,sx,sy){player.hp=Math.max(0,player.hp-amount);p
 function updateFx(dt){for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.pow(.02,dt);p.vy*=Math.pow(.02,dt);}particles=particles.filter(p=>p.life>0);for(const t of texts){t.life-=dt;t.y-=36*dt;}texts=texts.filter(t=>t.life>0);for(const w of waves)w.life-=dt;waves=waves.filter(w=>w.life>0);}
 function burst(x,y,count,color,speed){for(let i=0;i<count&&particles.length<700;i++){const a=Math.random()*Math.PI*2,s=rand(speed*.25,speed);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.18,.5),max:.5,size:rand(2,7),color});}}
 
-function gameOver(){if(state.over)return;state.over=true;state.running=false;mouse.right=false;castState=null;showCharge(false);ui.result.innerHTML=`存活 <b>${formatTime(state.time)}</b><br>擊殺 <b>${state.kills}</b>　總傷害 <b>${Math.round(state.totalDamage)}</b><br>施法失敗 <b>${state.failures}</b> / ${state.attempts}`;setTimeout(()=>ui.death.classList.remove('hidden'),300);sfx('death');}
+function gameOver(){if(state.over)return;state.over=true;state.running=false;player.moveTarget=null;castState=null;showCharge(false);ui.result.innerHTML=`存活 <b>${formatTime(state.time)}</b><br>擊殺 <b>${state.kills}</b>　總傷害 <b>${Math.round(state.totalDamage)}</b><br>施法失敗 <b>${state.failures}</b> / ${state.attempts}`;setTimeout(()=>ui.death.classList.remove('hidden'),300);sfx('death');}
 function updateUI(){if(state.time-state.lastUi<.08)return;state.lastUi=state.time;const hp=player.hp/player.maxHp;ui.hpFill.style.width=(hp*100)+'%';ui.hpFill.style.background=hp<.3?'linear-gradient(90deg,#ef3f4e,#ff867e)':'linear-gradient(90deg,#34d17e,#87f0ad)';ui.hpText.textContent=`HP ${Math.ceil(player.hp)} / ${player.maxHp}`;ui.timeText.textContent=formatTime(state.time);ui.stats.textContent=`擊殺 ${state.kills}　傷害 ${Math.round(state.totalDamage)}　敵人 ${enemies.filter(e=>!e.dead).length}`;}
 function formatTime(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0')}
 function toast(msg,fail=false){ui.toast.textContent=msg;ui.toast.className=fail?'show fail':'show';clearTimeout(toastTimer);toastTimer=setTimeout(()=>ui.toast.className='',1100)}
 
 function loop(now){if(!state?.running||state.paused||state.over){render();return}const dt=Math.min(.033,(now-lastFrame)/1000||.016);lastFrame=now;update(dt);render();requestAnimationFrame(loop);}
 function drawIdle(){if(!images.map){ctx.fillStyle='#0a1012';ctx.fillRect(0,0,W,H);return;}ctx.drawImage(images.map,0,0,W,H);const g=ctx.createRadialGradient(W/2,H/2,150,W/2,H/2,850);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.28)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
-function render(){if(!images.map)return;const sh=state?.shake||0,sx=sh?rand(-sh,sh):0,sy=sh?rand(-sh,sh):0;ctx.save();ctx.translate(sx,sy);ctx.drawImage(images.map,0,0,W,H);ctx.fillStyle='rgba(6,9,10,.08)';ctx.fillRect(0,0,W,H);drawZones();drawWaves(false);drawProjectiles();drawCharacters();drawBeam();drawWaves(true);drawParticles();drawTexts();drawCrosshair();ctx.restore();if(state?.flash>0){ctx.fillStyle=`rgba(255,36,54,${state.flash*.55})`;ctx.fillRect(0,0,W,H);}if(state?.paused){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 52px sans-serif';ctx.fillText('暫停',W/2,H/2);}}
+function render(){if(!images.map)return;const sh=state?.shake||0,sx=sh?rand(-sh,sh):0,sy=sh?rand(-sh,sh):0;ctx.save();ctx.translate(sx,sy);ctx.drawImage(images.map,0,0,W,H);ctx.fillStyle='rgba(6,9,10,.08)';ctx.fillRect(0,0,W,H);drawZones();drawWaves(false);drawProjectiles();drawCharacters();drawBeam();drawWaves(true);drawParticles();drawTexts();drawMoveTarget();drawCrosshair();ctx.restore();if(state?.flash>0){ctx.fillStyle=`rgba(255,36,54,${state.flash*.55})`;ctx.fillRect(0,0,W,H);}if(state?.paused){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 52px sans-serif';ctx.fillText('暫停',W/2,H/2);}}
 function drawZones(){for(const z of zones){const a=Math.min(1,z.life/.25, (z.max-z.life)/.2);ctx.save();ctx.globalAlpha=.22+.12*Math.sin(state.time*7);if(z.type==='water'){const g=ctx.createRadialGradient(z.x,z.y,10,z.x,z.y,z.r);g.addColorStop(0,'rgba(70,180,255,.34)');g.addColorStop(.72,'rgba(36,112,255,.2)');g.addColorStop(1,'rgba(20,75,190,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(120,215,255,.8)';ctx.lineWidth=3;ctx.setLineDash([12,10]);ctx.stroke();}else{const ang=Math.atan2(z.dy,z.dx);ctx.fillStyle='rgba(255,70,25,.27)';ctx.beginPath();ctx.moveTo(z.x,z.y);ctx.arc(z.x,z.y,z.r,ang-z.angle/2,ang+z.angle/2);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(255,135,54,.8)';ctx.lineWidth=3;ctx.stroke();}ctx.restore();}}
 function drawProjectiles(){for(const p of projectiles){ctx.save();ctx.shadowBlur=25;ctx.shadowColor=p.fire?'#ff5b24':'#d0a46b';ctx.fillStyle=p.fire?'#ff823c':'#9c7950';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.fillStyle=p.fire?'#ffd06a':'#d7bc92';ctx.beginPath();ctx.arc(p.x-p.r*.25,p.y-p.r*.25,p.r*.35,0,Math.PI*2);ctx.fill();ctx.restore();}}
 function drawCharacters(){const list=[];for(const e of enemies)if(!e.dead||e.deathLife>0)list.push({y:e.y,type:'enemy',obj:e});if(player)list.push({y:player.y,type:'player',obj:player});list.sort((a,b)=>a.y-b.y);for(const it of list)it.type==='enemy'?drawEnemy(it.obj):drawPlayer();}
@@ -284,6 +309,7 @@ function drawBeam(){if(castState?.type!=='beam')return;const fire=castState.fire
 function drawWaves(front){for(const w of waves){if(front!==(w.type==='circle'||w.type==='dash'))continue;const q=1-w.life/w.max;ctx.save();ctx.globalAlpha=(1-q)*.8;ctx.strokeStyle=w.color;ctx.lineWidth=5*(1-q)+1;ctx.shadowBlur=18;ctx.shadowColor=w.color;if(w.type==='circle'){ctx.beginPath();ctx.arc(w.x,w.y,w.r+q*90,0,Math.PI*2);ctx.stroke();}else if(w.type==='dash'){ctx.beginPath();ctx.moveTo(w.x,w.y);ctx.lineTo(w.x2,w.y2);ctx.stroke();}else{const a=Math.atan2(w.dy,w.dx),r=w.r+q*190;ctx.beginPath();ctx.arc(w.x,w.y,r,a-Math.PI/4,a+Math.PI/4);ctx.stroke();}ctx.restore();}}
 function drawParticles(){ctx.save();for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);}ctx.restore();}
 function drawTexts(){ctx.save();ctx.textAlign='center';ctx.font='900 22px sans-serif';for(const t of texts){ctx.globalAlpha=clamp(t.life/t.max,0,1);ctx.fillStyle=t.color;ctx.strokeStyle='rgba(0,0,0,.9)';ctx.lineWidth=5;ctx.strokeText(t.text,t.x,t.y);ctx.fillText(t.text,t.x,t.y);}ctx.restore();}
+function drawMoveTarget(){if(!player?.moveTarget&&!player?.movePing)return;const p=player.movePing||player.moveTarget;if(!p)return;const life=player.movePing?player.movePing.life/player.movePing.max:0.35;ctx.save();ctx.globalAlpha=clamp(life,0.18,1);ctx.strokeStyle='#78e7c1';ctx.lineWidth=3;const r=16+(1-life)*13;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.moveTo(p.x-r-8,p.y);ctx.lineTo(p.x-r+2,p.y);ctx.moveTo(p.x+r-2,p.y);ctx.lineTo(p.x+r+8,p.y);ctx.moveTo(p.x,p.y-r-8);ctx.lineTo(p.x,p.y-r+2);ctx.moveTo(p.x,p.y+r-2);ctx.lineTo(p.x,p.y+r+8);ctx.stroke();ctx.restore();}
 function drawCrosshair(){if(!mouse.inside||!state?.running)return;const c=RECIPES[bufferCode()]?.mode==='self'?'#c9a5ff':'#f4d28e';ctx.save();ctx.strokeStyle=c;ctx.lineWidth=2;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(mouse.x,mouse.y,11+Math.sin(state.time*4)*2,0,Math.PI*2);ctx.moveTo(mouse.x-18,mouse.y);ctx.lineTo(mouse.x-6,mouse.y);ctx.moveTo(mouse.x+6,mouse.y);ctx.lineTo(mouse.x+18,mouse.y);ctx.moveTo(mouse.x,mouse.y-18);ctx.lineTo(mouse.x,mouse.y-6);ctx.moveTo(mouse.x,mouse.y+6);ctx.lineTo(mouse.x,mouse.y+18);ctx.stroke();ctx.restore();}
 
 function ensureAudio(){if(audio)return;try{audio=new(window.AudioContext||window.webkitAudioContext)()}catch(_){} }
