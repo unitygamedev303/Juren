@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>倖存撤離者｜五相弱點精英戰 HTML 試玩 v1.6</title>
+<title>倖存撤離者｜五相反制精英戰 HTML 試玩 v1.7</title>
 <style>
   :root{
     --ink:#f5f1e8;--muted:#b9c3ca;--panel:rgba(9,13,18,.82);--line:rgba(226,184,101,.5);
@@ -20,6 +20,10 @@
   .hp-frame{height:clamp(16px,1.7vw,25px);padding:3px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.7);border-radius:4px;box-shadow:0 0 0 1px #000}
   .hp-fill{height:100%;width:100%;background:linear-gradient(90deg,#34d17e,#87f0ad);border-radius:2px;transition:width .13s linear}
   .hp-line{display:flex;justify-content:space-between;margin-top:5px;font-size:clamp(10px,1.08vw,17px);font-weight:700}
+  .momentum-line{display:flex;justify-content:space-between;gap:10px;margin-top:7px;font-size:clamp(9px,.9vw,13px);font-weight:900;color:#ffe0a0}
+  .momentum-frame{height:9px;margin-top:3px;padding:1px;border:1px solid rgba(255,221,151,.55);background:rgba(0,0,0,.68);border-radius:6px;box-shadow:inset 0 0 8px rgba(0,0,0,.8)}
+  #momentumFill{height:100%;width:20%;border-radius:4px;background:linear-gradient(90deg,#8b5b24,#e2b653,#fff0a5);transition:width .12s linear,filter .18s,box-shadow .18s}
+  #momentumFill.ready{filter:brightness(1.25);box-shadow:0 0 16px rgba(255,222,137,.85)}
   #stats{font-size:clamp(9px,.92vw,14px);color:var(--muted);margin-top:4px}
   #spellReadout{position:absolute;left:50%;bottom:14.2%;transform:translateX(-50%);min-width:280px;text-align:center;font-weight:800;font-size:clamp(12px,1.25vw,19px);letter-spacing:.03em;color:#fff}
   #buffer{position:absolute;left:50%;bottom:5.2%;transform:translateX(-50%);display:flex;gap:clamp(6px,.7vw,11px)}
@@ -68,10 +72,12 @@
   <canvas id="game" width="1536" height="1024" aria-label="五相戰鬥試玩場"></canvas>
   <div class="hud">
     <div class="top-left">
-      <div class="brand">SURVIVOR RAIDERS · FIVE-PHASE ELITE COMBAT · v1.6</div>
+      <div class="brand">SURVIVOR RAIDERS · COUNTERPLAY COMBAT · v1.7</div>
       <div class="hp-frame"><div id="hpFill" class="hp-fill"></div></div>
-      <div class="hp-line"><span id="hpText">HP 220 / 220</span><span id="timeText">00:00</span></div>
-      <div id="stats">擊殺 0　傷害 0　敵人 0</div><div id="waveText">準備第 1 波</div>
+      <div class="hp-line"><span id="hpText">HP 200 / 200</span><span id="timeText">00:00</span></div>
+      <div class="momentum-line"><span>相勢</span><span id="momentumText">20 / 100 · 終式 60</span></div>
+      <div class="momentum-frame"><div id="momentumFill"></div></div>
+      <div id="stats">擊殺 0　反制 0　敵人 0</div><div id="waveText">準備第 1 波</div>
     </div>
     <button id="refreshBtn" title="使用唯一網址參數重新抓取 GitHub Pages 最新 index.html">強制更新</button>
     <button id="fullscreenBtn">全螢幕</button>
@@ -79,42 +85,42 @@
     <div id="guide">
       <h3>五相配方</h3>
       <div class="recipe"><span class="keys">QQQ</span><span>火焰扇形：持續輸出，克獵獸 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys final">QQQQ</span><span><b>煉獄焚界</b>：範圍／傷害最終版 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys final">QQQQ</span><span><b>煉獄焚界</b>：消耗 60 相勢；終式範圍燃燒 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">WWW</span><span>潮汐水域：低傷害／緩速控場 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys final">WWWW</span><span><b>滄海囹圄</b>：大範圍強化水域 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys">EEE</span><span>蓄力石砲：物理爆發／破界甲 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys final">EEEE</span><span><b>天墜岩核</b>：巨型物理破甲砲 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys final">WWWW</span><span><b>滄海囹圄</b>：消耗 60 相勢；大範圍拘束 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys">EEE</span><span>蓄力石砲：精準物理／高破甲；對肉體傷害偏低 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys final">EEEE</span><span><b>天墜岩核</b>：消耗 60 相勢；中心強破甲、外圈低傷 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">QE / EQ</span><span>爆炎石砲：直擊＋範圍爆炸 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">DDD</span><span>風壓：擊退／打斷高速突進 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys final">DDDD</span><span><b>颶界崩解</b>：廣角高傷風壓 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys final">DDDD</span><span><b>颶界崩解</b>：消耗 60 相勢；廣角吹散與長硬直 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">FFF</span><span>雷電射線：集中輸出／克遠距 <span class="mode">外放</span></span></div>
-      <div class="recipe"><span class="keys final">FFFF</span><span><b>天雷裁界</b>：超長寬幅連鎖射線 <span class="mode">外放</span></span></div>
+      <div class="recipe"><span class="keys final">FFFF</span><span><b>天雷裁界</b>：消耗 60 相勢；寬幅連鎖射線 <span class="mode">外放</span></span></div>
       <div class="recipe"><span class="keys">FFF</span><span>三格閃現／短暫無敵 <span class="mode self">自身</span></span></div>
       <h3 style="margin-top:12px">怪物弱點</h3>
-      <div class="recipe"><span class="keys">獵獸</span><span><span class="weak">弱火</span>；水傷偏低</span></div>
-      <div class="recipe"><span class="keys">甲核</span><span><span class="weak">界甲時元素免疫</span>；用岩石砲物理破甲</span></div>
-      <div class="recipe"><span class="keys">術士</span><span><span class="weak">弱雷</span>；抗一般 AOE</span></div>
-      <div class="recipe"><span class="keys">獵手</span><span><span class="weak">弱風</span>；抗一般 AOE</span></div>
+      <div class="recipe"><span class="keys">獵獸</span><span><span class="weak">火焰恐慌</span>：中斷爪擊並露出破綻</span></div>
+      <div class="recipe"><span class="keys">甲核</span><span><span class="weak">岩石削界甲</span>；破甲後岩傷降低，必須切元素追擊</span></div>
+      <div class="recipe"><span class="keys">術士</span><span><span class="weak">雷擊過載</span>：中斷射擊、暫時關閉相盾</span></div>
+      <div class="recipe"><span class="keys">獵手</span><span><span class="weak">風壓吹翻</span>：取消突進並創造輸出窗口</span></div>
     </div>
     <div id="toast"></div>
     <div id="bossHud" class="hidden"><div id="bossName">裂界王</div><div id="bossBar"><div id="bossFill"></div></div><div id="bossHp"></div></div>
     <div id="chargeWrap"><div id="chargeFill"></div></div>
     <div id="spellReadout">BUFFER EMPTY</div>
     <div id="buffer"><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div><div class="cell">－</div></div>
-    <div id="hint">右鍵點一下＝走到目的地；右鍵按住＝持續追隨游標 · 移動中可施法 · D=風／F=雷 · FFF+自身=閃現 · 四連同相=最終式 · 先看敵人弱點再出手</div>
-    <div id="buildBadge">BUILD 2026.08.13.ELITE.3</div>
+    <div id="hint">右鍵點／按住移動 · 三連負責反制與累積相勢 · 四連終式消耗 60 相勢 · 岩只擅長破甲，破甲後切元素追擊</div>
+    <div id="buildBadge">BUILD 2026.08.14.COUNTERPLAY.1</div>
   </div>
 
   <div id="startOverlay" class="overlay">
     <div class="card">
       <h1>五相戰鬥場</h1>
-      <div class="sub">HTML 即時試玩 · 少量精英／明確弱點／四連最終式</div>
+      <div class="sub">HTML 即時試玩 · 反制／破綻／相勢終式</div>
       <div class="controls">
         <div><kbd>右鍵</kbd> 點一下走到目的地；按住則持續追著游標移動</div><div><kbd>左鍵／中鍵</kbd> 移動途中直接施法</div>
         <div><kbd>Q W E D F</kbd> 五相（D=風／F=雷）</div><div><kbd>X</kbd> 撤銷／<kbd>⌫</kbd> 清空</div>
         <div><kbd>左鍵</kbd>／<kbd>Space</kbd> 外放</div><div><kbd>中鍵</kbd>／<kbd>Shift</kbd> 自身</div>
       </div>
-      <div>五波制精英戰：怪物會先顯示出生與攻擊預警。獵獸弱火、甲核在界甲存在時元素傷害完全免疫，必須用岩石物理破甲；術士弱雷、獵手弱風。狂丟同一個 AOE 會被抗性或免疫直接擋下。每波結束會回復生命。</div>
+      <div>五波制精英戰：敵人血量提高、玩家傷害收斂，不再拼一擊秒殺。用火讓獵獸恐慌、雷使術士相盾過載、風吹翻高速突進、岩石削除界甲；成功反制會累積相勢，60 相勢才能輸入四連終式。每波僅有限敵人取得強攻擊權，攻擊可讀但不能無腦繞圈。</div>
       <div class="start-row">
         <label>最高同場精英
           <select id="enemyCount">
@@ -141,7 +147,7 @@
 /* GitHub Pages single-file build/version cache control. */
 (() => {
   'use strict';
-  const BUILD_VERSION = '2026.08.13.ELITE.3';
+  const BUILD_VERSION = '2026.08.14.COUNTERPLAY.1';
   const STORAGE_KEY = 'survivor_raiders_spk2_build';
   const RELOAD_KEY = 'survivor_raiders_spk2_reload_' + BUILD_VERSION;
   window.SR_BUILD_VERSION = BUILD_VERSION;
@@ -214,12 +220,16 @@ const W = 1536;
 const H = 1024;
 const PPM = 46;
 const ARENA = { left: 174, right: 1362, top: 151, bottom: 893 };
+const MOMENTUM_MAX = 100;
+const ULTIMATE_COST = 60;
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d', { alpha: false });
 
 const ui = {
   hpFill: document.getElementById('hpFill'),
   hpText: document.getElementById('hpText'),
+  momentumFill: document.getElementById('momentumFill'),
+  momentumText: document.getElementById('momentumText'),
   timeText: document.getElementById('timeText'),
   stats: document.getElementById('stats'),
   waveText: document.getElementById('waveText'),
@@ -293,23 +303,23 @@ const RECIPES = {
 
 const TYPE_STATS = {
   melee: {
-    label: '裂爪獵獸', weak: '火', sprite: 'melee', hp: 105, speed: 2.15, r: 21,
+    label: '裂爪獵獸', weak: '火焰恐慌', sprite: 'melee', hp: 180, speed: 2.08, r: 21,
     damage: 16, scale: 1, drawH: 105, color: '#f06a6e'
   },
   tank: {
-    label: '封界甲核', weak: '界甲元素免疫／岩石砲', sprite: 'tank', hp: 285, speed: 1.02, r: 31,
+    label: '封界甲核', weak: '岩破甲→元素追擊', sprite: 'tank', hp: 280, guard: 240, speed: .98, r: 31,
     damage: 24, scale: 1.02, drawH: 92, color: '#e2b557'
   },
   ranged: {
-    label: '虛潮觸術士', weak: '雷', sprite: 'ranged', hp: 96, speed: 1.42, r: 20,
+    label: '虛潮觸術士', weak: '雷擊過載相盾', sprite: 'ranged', hp: 160, speed: 1.38, r: 20,
     damage: 11, scale: .97, drawH: 108, color: '#63d8ff'
   },
   speed: {
-    label: '裂行獵手', weak: '風', sprite: 'speed', hp: 78, speed: 3.15, r: 18,
+    label: '裂行獵手', weak: '風壓吹翻突進', sprite: 'speed', hp: 135, speed: 3.08, r: 18,
     damage: 14, scale: .86, drawH: 94, color: '#ff73ce'
   },
   boss: {
-    label: '裂界王', weak: '相盾元素免疫／岩破盾後全相', sprite: 'boss', hp: 2650, speed: 1.18, r: 52,
+    label: '裂界王', weak: '岩破盾→元素爆發', sprite: 'boss', hp: 3400, guard: 620, speed: 1.15, r: 52,
     damage: 20, scale: 1.08, drawH: 185, color: '#ca7aff'
   }
 };
@@ -353,6 +363,11 @@ function newState() {
     kills: 0,
     totalDamage: 0,
     weakHits: 0,
+    counters: 0,
+    ultimateCasts: 0,
+    momentum: 20,
+    momentumMax: MOMENTUM_MAX,
+    ultimateReadyNotified: false,
     attempts: 0,
     failures: 0,
     shake: 0,
@@ -381,8 +396,8 @@ function newPlayer() {
   return {
     x, y,
     r: 23,
-    hp: 220,
-    maxHp: 220,
+    hp: 200,
+    maxHp: 200,
     speed: 7.45 * PPM,
     hitCooldown: 0,
     invuln: 0,
@@ -460,7 +475,7 @@ function beginWave(wave) {
 
 function healBetweenWaves() {
   const before = player.hp;
-  player.hp = Math.min(player.maxHp, player.hp + 48);
+  player.hp = Math.min(player.maxHp, player.hp + 30);
   player.invuln = Math.max(player.invuln, 1.0);
   const healed = Math.round(player.hp - before);
   if (healed > 0) {
@@ -547,7 +562,15 @@ function makeEnemy(type = 'melee', point = null) {
     strafe: Math.random() < .5 ? -1 : 1,
     spawnDelay,
     spawnMax: spawnDelay,
+    maxGuard: stats.guard || 0,
+    guard: stats.guard || 0,
     shieldBrokenUntil: 0,
+    shieldWasBroken: false,
+    wardBrokenUntil: 0,
+    wetUntil: 0,
+    counterCooldownUntil: 0,
+    momentumCooldownUntil: 0,
+    lastGuardText: -9,
     bossAttackCd: 1.6,
     bossPulseCd: 4.8,
     bossSummonCd: 7.5
@@ -581,7 +604,7 @@ function spawnBoss() {
   state.waveState = 'boss';
   ui.bossHud.classList.remove('hidden');
   waves.push({ type: 'portal', x: point.x, y: point.y, r: 88, life: 1.5, max: 1.5, color: '#c875ff', front: false });
-  toast('裂界王降臨 · 先用岩石砲擊破界甲');
+  toast('裂界王降臨 · 岩削盾，破盾後立刻切元素');
   state.shake = 16;
   triggerCastFlash('#a658ff', .18, .45);
   sfx('boss');
@@ -734,6 +757,19 @@ function addBuffer(key) {
     sfx('fail');
     return;
   }
+
+  if (buffer.length === 3) {
+    const candidate = buffer.join('') + key;
+    const finalRecipe = RECIPES[candidate];
+    if (finalRecipe?.final && state.momentum < ULTIMATE_COST) {
+      toast(`相勢不足 ${Math.floor(state.momentum)}/${ULTIMATE_COST} · 保留三連`, true);
+      texts.push({ x: player.x, y: player.y - 66, text: '相勢不足｜三連仍可施放', life: .8, max: .8, color: '#ffd795' });
+      sfx('fail');
+      updateBufferUI();
+      return;
+    }
+  }
+
   buffer.push(key);
   updateBufferUI();
   sfx('input');
@@ -754,9 +790,16 @@ function updateBufferUI() {
   });
   const code = bufferCode();
   const recipe = RECIPES[code];
-  if (code === 'FFF') ui.spell.textContent = 'FFF · 雷電射線（外放）／三格閃現（自身）';
-  else if (recipe) ui.spell.textContent = `${recipe.final ? '【四連最終式】' : ''}${recipe.name} · ${recipe.mode === 'self' ? '自身施法' : '外放施法'}`;
-  else if (buffer.length) ui.spell.textContent = `未完成配方：${code}`;
+  const pureTriple = code.length === 3 && code.split('').every(key => key === code[0]);
+  const possibleFinal = pureTriple ? RECIPES[code + code[0]] : null;
+  if (code === 'FFF') {
+    const finalHint = state?.momentum >= ULTIMATE_COST ? '｜再按 F 可升終式' : `｜終式需 ${ULTIMATE_COST} 相勢`;
+    ui.spell.textContent = `FFF · 雷電射線（外放）／三格閃現（自身）${finalHint}`;
+  } else if (recipe) {
+    ui.spell.textContent = `${recipe.final ? `【四連終式 · -${ULTIMATE_COST} 相勢】` : ''}${recipe.name} · ${recipe.mode === 'self' ? '自身施法' : '外放施法'}`;
+  } else if (possibleFinal) {
+    ui.spell.textContent = `${RECIPES[code].name} · 三連可立即施放｜四連需 ${ULTIMATE_COST} 相勢`;
+  } else if (buffer.length) ui.spell.textContent = `未完成配方：${code}`;
   else ui.spell.textContent = 'BUFFER EMPTY';
 }
 
@@ -781,16 +824,30 @@ function startExternal(source) {
     failCast(recipe ? '此配方必須使用「自身施法」' : '外放公式無效');
     return;
   }
+  if (recipe.final && state.momentum < ULTIMATE_COST) {
+    state.attempts -= 1;
+    toast(`相勢不足：${Math.floor(state.momentum)} / ${ULTIMATE_COST} · 請先用三連反制`, true);
+    sfx('fail');
+    return;
+  }
 
   const aim = aimDir();
+  if (recipe.final) {
+    state.momentum = Math.max(0, state.momentum - ULTIMATE_COST);
+    state.ultimateCasts += 1;
+    state.ultimateReadyNotified = false;
+  }
   consumeBuffer();
+
+  if (recipe.final && ['fireFinal', 'waterFinal', 'windFinal'].includes(recipe.type)) {
+    beginUltimateWindup(recipe.type, source, aim);
+    return;
+  }
+
   switch (recipe.type) {
     case 'fireCone': castFireCone(aim, false); break;
-    case 'fireFinal': castFireCone(aim, true); break;
     case 'waterZone': castWater(false); break;
-    case 'waterFinal': castWater(true); break;
     case 'windCone': castWind(aim, false); break;
-    case 'windFinal': castWind(aim, true); break;
     case 'boulder': beginBoulderCharge(source, false, false, aim); break;
     case 'fireBoulder': beginBoulderCharge(source, true, false, aim); break;
     case 'earthFinal': beginBoulderCharge(source, false, true, aim); break;
@@ -858,6 +915,86 @@ function movementDir() {
   return { x: 0, y: 0 };
 }
 
+function grantMomentum(amount, reason, enemy = null, cooldown = 1.6) {
+  if (!state?.running || amount <= 0) return 0;
+  if (enemy && state.time < enemy.momentumCooldownUntil) return 0;
+  if (enemy) enemy.momentumCooldownUntil = state.time + cooldown;
+  const before = state.momentum;
+  state.momentum = clamp(state.momentum + amount, 0, MOMENTUM_MAX);
+  const gained = Math.round(state.momentum - before);
+  if (gained <= 0) return 0;
+  state.counters += 1;
+  const x = enemy ? enemy.x : player.x;
+  const y = enemy ? enemy.y - 62 : player.y - 70;
+  texts.push({ x, y, text: `${reason}｜相勢 +${gained}`, life: 1.0, max: 1.0, color: '#ffe39a' });
+  if (before < ULTIMATE_COST && state.momentum >= ULTIMATE_COST && !state.ultimateReadyNotified) {
+    state.ultimateReadyNotified = true;
+    toast('相勢已足 · 可輸入同相四連終式');
+    sfx('momentumReady');
+  }
+  return gained;
+}
+
+function triggerCounter(enemy, label, duration, momentumReward, isFinal, cooldown = 2.2) {
+  const fresh = state.time >= enemy.counterCooldownUntil;
+  const wasThreatening = !!enemy.attack || !!enemy.rush;
+  if (!fresh) {
+    if (wasThreatening) {
+      enemy.attack = null;
+      enemy.rush = null;
+      enemy.rushHit = false;
+      enemy.stagger = Math.max(enemy.stagger, .28);
+      enemy.attackCd = Math.max(enemy.attackCd, .75);
+    }
+    return false;
+  }
+  enemy.attack = null;
+  enemy.rush = null;
+  enemy.rushHit = false;
+  enemy.stagger = Math.max(enemy.stagger, duration);
+  enemy.attackCd = Math.max(enemy.attackCd, duration + .65);
+  enemy.counterCooldownUntil = state.time + cooldown;
+  texts.push({ x: enemy.x, y: enemy.y - 50, text: label, life: .9, max: .9, color: '#fff0a8' });
+  waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.r + 6, life: .42, max: .42, color: '#fff0a8', front: true });
+  if (!isFinal) grantMomentum(momentumReward, label, enemy, cooldown);
+  sfx('counter');
+  return true;
+}
+
+function beginUltimateWindup(recipeType, source, aim) {
+  const target = {
+    x: clamp(mouse.x, ARENA.left + 50, ARENA.right - 50),
+    y: clamp(mouse.y, ARENA.top + 50, ARENA.bottom - 50)
+  };
+  castState = { type: 'ultimateWindup', recipeType, source, aim: { ...aim }, target, t: .32, max: .32, ultimate: true };
+  showCharge(true);
+  waves.push({ type: 'rune', x: player.x, y: player.y, r: 74, life: .36, max: .36, color: '#ffe6a0', front: false });
+  toast('四連終式展開 · 移動不會中斷');
+  sfx('ultimateCharge');
+}
+
+function executeUltimateWindup(cast) {
+  castState = null;
+  showCharge(false);
+  if (cast.recipeType === 'fireFinal') castFireCone(cast.aim, true);
+  else if (cast.recipeType === 'waterFinal') castWater(true, cast.target);
+  else if (cast.recipeType === 'windFinal') castWind(cast.aim, true);
+}
+
+function activeEnemyAttackCount() {
+  return enemies.filter(enemy => !enemy.dead && enemy.type !== 'boss' && (enemy.attack || enemy.rush)).length;
+}
+
+function enemyAttackBudget() {
+  if (state.wave <= 2) return 2;
+  if (state.wave <= 4) return 3;
+  return 4;
+}
+
+function canStartEnemyAttack() {
+  return activeEnemyAttackCount() < enemyAttackBudget();
+}
+
 function triggerCastFlash(color, alpha = .12, life = .25) {
   state.castFlash = { color, alpha, life, max: life };
 }
@@ -892,16 +1029,16 @@ function hitCircle(x, y, radius, damage, knock, tag) {
 }
 
 function castFireCone(direction, ultimate) {
-  const radius = (ultimate ? 6.5 : 4.8) * PPM;
-  const angle = (ultimate ? 112 : 80) * Math.PI / 180;
-  const life = ultimate ? 3.15 : 2.35;
-  const damage = ultimate ? 23 : 13;
+  const radius = (ultimate ? 6.3 : 4.6) * PPM;
+  const angle = (ultimate ? 108 : 78) * Math.PI / 180;
+  const life = ultimate ? 3.0 : 2.35;
+  const damage = ultimate ? 14 : 9;
   zones.push({
     type: 'fire', x: player.x, y: player.y, dx: direction.x, dy: direction.y,
-    r: radius, angle, life, max: life, tick: 0, interval: ultimate ? .17 : .2,
+    r: radius, angle, life, max: life, tick: 0, interval: ultimate ? .18 : .21,
     damage, tag: ultimate ? 'fireFinal' : 'fire', ultimate
   });
-  hitCone(player.x, player.y, direction, radius, angle, ultimate ? 52 : 18, ultimate ? 240 : 110, ultimate ? 'fireFinal' : 'fire');
+  hitCone(player.x, player.y, direction, radius, angle, ultimate ? 28 : 10, ultimate ? 210 : 90, ultimate ? 'fireFinal' : 'fire');
   const arcs = ultimate ? 4 : 2;
   for (let i = 0; i < arcs; i += 1) {
     waves.push({ type: 'cone', x: player.x, y: player.y, dx: direction.x, dy: direction.y, r: 16 + i * 24, spread: angle, life: .38 + i * .08, max: .38 + i * .08, color: ultimate ? '#ffb24d' : '#ff6338', front: true });
@@ -910,21 +1047,21 @@ function castFireCone(direction, ultimate) {
   burst(player.x + direction.x * 90, player.y + direction.y * 90, ultimate ? 86 : 42, ultimate ? '#ffb34f' : '#ff673a', ultimate ? 310 : 190);
   state.shake = Math.max(state.shake, ultimate ? 12 : 5);
   triggerCastFlash('#ff5a25', ultimate ? .16 : .07, ultimate ? .35 : .18);
-  toast(ultimate ? '四連火 · 煉獄焚界' : '火焰扇形 · 克制裂爪獵獸');
+  toast(ultimate ? '四連火 · 煉獄焚界' : '火焰扇形 · 讓獵獸恐慌並露出破綻');
   sfx(ultimate ? 'ultimate' : 'fire');
 }
 
-function castWater(ultimate) {
-  const x = clamp(mouse.x, ARENA.left + 50, ARENA.right - 50);
-  const y = clamp(mouse.y, ARENA.top + 50, ARENA.bottom - 50);
-  const radius = (ultimate ? 4.05 : 2.55) * PPM;
-  const life = ultimate ? 3.0 : 2.0;
+function castWater(ultimate, lockedTarget = null) {
+  const x = clamp(lockedTarget?.x ?? mouse.x, ARENA.left + 50, ARENA.right - 50);
+  const y = clamp(lockedTarget?.y ?? mouse.y, ARENA.top + 50, ARENA.bottom - 50);
+  const radius = (ultimate ? 4.15 : 2.65) * PPM;
+  const life = ultimate ? 3.4 : 2.35;
   zones.push({
     type: 'water', x, y, r: radius, life, max: life, tick: 0,
-    interval: ultimate ? .2 : .25, damage: ultimate ? 9 : 3.5,
-    slowDuration: ultimate ? .68 : .42, tag: ultimate ? 'waterFinal' : 'water', ultimate
+    interval: ultimate ? .2 : .25, damage: ultimate ? 5 : 2.5,
+    slowDuration: ultimate ? .9 : .55, tag: ultimate ? 'waterFinal' : 'water', ultimate
   });
-  hitCircle(x, y, radius, ultimate ? 30 : 6, ultimate ? 90 : 20, ultimate ? 'waterFinal' : 'water');
+  hitCircle(x, y, radius, ultimate ? 10 : 3, ultimate ? 85 : 15, ultimate ? 'waterFinal' : 'water');
   const rings = ultimate ? 5 : 3;
   for (let i = 0; i < rings; i += 1) {
     waves.push({ type: 'circle', x, y, r: 18 + i * 18, life: .52 + i * .09, max: .52 + i * .09, color: ultimate ? '#8ce8ff' : '#4badff', front: i % 2 === 0 });
@@ -933,15 +1070,15 @@ function castWater(ultimate) {
   burst(x, y, ultimate ? 78 : 36, ultimate ? '#a6efff' : '#54baff', ultimate ? 220 : 130);
   state.shake = Math.max(state.shake, ultimate ? 9 : 3);
   triggerCastFlash('#4cbcff', ultimate ? .13 : .05, ultimate ? .32 : .16);
-  toast(ultimate ? '四連水 · 滄海囹圄' : '潮汐水域 · 控場，不是主輸出');
+  toast(ultimate ? '四連水 · 滄海囹圄 · 強拘束' : '潮汐水域 · 延長反應時間與追擊窗口');
   sfx(ultimate ? 'ultimateWater' : 'water');
 }
 
 function castWind(direction, ultimate) {
-  const radius = (ultimate ? 6.8 : 5.1) * PPM;
-  const angle = (ultimate ? 132 : 92) * Math.PI / 180;
-  const damage = ultimate ? 92 : 46;
-  const knock = ultimate ? 790 : 520;
+  const radius = (ultimate ? 6.6 : 5.0) * PPM;
+  const angle = (ultimate ? 128 : 90) * Math.PI / 180;
+  const damage = ultimate ? 52 : 22;
+  const knock = ultimate ? 760 : 510;
   const hits = hitCone(player.x, player.y, direction, radius, angle, damage, knock, ultimate ? 'windFinal' : 'wind');
   const slashes = ultimate ? 5 : 3;
   for (let i = 0; i < slashes; i += 1) {
@@ -951,7 +1088,7 @@ function castWind(direction, ultimate) {
   burst(player.x + direction.x * 105, player.y + direction.y * 105, ultimate ? 92 : 48, ultimate ? '#d6fff0' : '#8ff6ce', ultimate ? 390 : 270);
   state.shake = Math.max(state.shake, ultimate ? 15 : 7);
   triggerCastFlash('#76efbd', ultimate ? .14 : .06, ultimate ? .3 : .16);
-  toast(ultimate ? `四連風 · 颶界崩解 · 命中 ${hits}` : `風壓震退 · 克制裂行獵手 · 命中 ${hits}`);
+  toast(ultimate ? `四連風 · 颶界崩解 · 命中 ${hits}` : `風壓震退 · 吹翻裂行獵手 · 命中 ${hits}`);
   sfx(ultimate ? 'ultimateWind' : 'wind');
 }
 
@@ -968,8 +1105,8 @@ function releaseBoulder() {
   const maxCharge = cast.ultimate ? .95 : 1.2;
   const fraction = clamp((state.time - cast.start) / maxCharge, 0, 1);
   const direction = aimDir();
-  const baseDamage = cast.ultimate ? 240 + 205 * fraction : 55 + 145 * fraction;
-  const damage = baseDamage * (cast.fire ? 1.2 : 1);
+  const baseDamage = cast.ultimate ? 82 + 88 * fraction : 34 + 66 * fraction;
+  const damage = baseDamage * (cast.fire ? 1.05 : 1);
   projectiles.push({
     x: player.x + direction.x * 40,
     y: player.y + direction.y * 40,
@@ -986,7 +1123,7 @@ function releaseBoulder() {
   waves.push({ type: 'rune', x: player.x, y: player.y, r: cast.ultimate ? 76 : 38, life: .55, max: .55, color: cast.fire ? '#ff8a42' : '#d5b47c', front: false });
   state.shake = Math.max(state.shake, cast.ultimate ? 10 : 4);
   triggerCastFlash(cast.fire ? '#ff6a2e' : '#cfa970', cast.ultimate ? .12 : .04, .22);
-  toast(cast.ultimate ? `四連地 · 天墜岩核 ${Math.round(damage)}` : `${cast.fire ? '爆炎石砲' : '石砲'} ${Math.round(damage)} · 物理破甲`);
+  toast(cast.ultimate ? `四連地 · 天墜岩核 ${Math.round(damage)} · 中心強破甲／外圈低傷` : `${cast.fire ? '爆炎石砲' : '石砲'} ${Math.round(damage)} · 岩只擅長破甲`);
   castState = null;
   showCharge(false);
   sfx(cast.ultimate ? 'ultimateRock' : 'boulder');
@@ -1066,6 +1203,10 @@ function update(dt) {
     const fraction = clamp((state.time - castState.start) / maxCharge, 0, 1);
     ui.chargeFill.style.width = `${fraction * 100}%`;
     castState.aim = aimDir();
+  } else if (castState?.type === 'ultimateWindup') {
+    castState.t -= dt;
+    ui.chargeFill.style.width = `${clamp(1 - castState.t / castState.max, 0, 1) * 100}%`;
+    if (castState.t <= 0) executeUltimateWindup({ ...castState });
   }
   if (castState?.type === 'beam') updateBeam(dt, castState.fire, castState.ultimate);
 
@@ -1085,6 +1226,13 @@ function updateEnemies(dt) {
     enemy.flash = Math.max(0, enemy.flash - dt);
     enemy.stagger = Math.max(0, enemy.stagger - dt);
     enemy.attackCd = Math.max(0, enemy.attackCd - dt);
+    if (enemy.maxGuard > 0 && enemy.shieldWasBroken && state.time >= enemy.shieldBrokenUntil && !enemy.dead) {
+      enemy.guard = enemy.maxGuard;
+      enemy.shieldWasBroken = false;
+      enemy.stagger = 0;
+      texts.push({ x: enemy.x, y: enemy.y - 58, text: enemy.type === 'boss' ? '相盾再生' : '界甲再生', life: .9, max: .9, color: enemy.type === 'boss' ? '#dfb9ff' : '#f1cd78' });
+      waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.r + 12, life: .5, max: .5, color: enemy.type === 'boss' ? '#d39aff' : '#e6c25f', front: true });
+    }
     if (enemy.dead) {
       enemy.deathLife -= dt;
       continue;
@@ -1121,7 +1269,7 @@ function updateRegularEnemy(enemy, dt) {
   const staggerFactor = enemy.stagger > 0 ? .18 : 1;
 
   if (enemy.type === 'melee') {
-    if (distance < 92 && enemy.attackCd <= 0) {
+    if (distance < 92 && enemy.attackCd <= 0 && canStartEnemyAttack()) {
       enemy.attack = { kind: 'claw', t: .68, max: .68, dx: toPlayer.x, dy: toPlayer.y };
       waves.push({ type: 'telegraphCone', x: enemy.x, y: enemy.y, dx: toPlayer.x, dy: toPlayer.y, r: 104, spread: 80 * Math.PI / 180, life: .68, max: .68, color: '#ff5b66', front: false });
       return;
@@ -1130,7 +1278,7 @@ function updateRegularEnemy(enemy, dt) {
     dx = toPlayer.x - toPlayer.y * wiggle;
     dy = toPlayer.y + toPlayer.x * wiggle;
   } else if (enemy.type === 'tank') {
-    if (distance < 150 && enemy.attackCd <= 0) {
+    if (distance < 150 && enemy.attackCd <= 0 && canStartEnemyAttack()) {
       enemy.attack = { kind: 'slam', t: 1.05, max: 1.05 };
       waves.push({ type: 'telegraphCircle', x: enemy.x, y: enemy.y, r: 142, life: 1.05, max: 1.05, color: '#e4b653', front: false });
       return;
@@ -1142,14 +1290,14 @@ function updateRegularEnemy(enemy, dt) {
     if (distance > desired + band) { dx = toPlayer.x; dy = toPlayer.y; }
     else if (distance < desired - band) { dx = -toPlayer.x; dy = -toPlayer.y; }
     else { dx = perpendicular.x; dy = perpendicular.y; }
-    if (enemy.attackCd <= 0 && distance < 590) {
+    if (enemy.attackCd <= 0 && distance < 590 && canStartEnemyAttack()) {
       const lead = player.lastMove || { x: 0, y: 0 };
       const target = { x: player.x + lead.x * 62, y: player.y + lead.y * 62 };
       enemy.attack = { kind: 'shot', t: .92, max: .92, tx: target.x, ty: target.y };
       return;
     }
   } else if (enemy.type === 'speed') {
-    if (enemy.attackCd <= 0 && distance > 130 && distance < 520) {
+    if (enemy.attackCd <= 0 && distance > 130 && distance < 520 && canStartEnemyAttack()) {
       const lead = player.lastMove || { x: 0, y: 0 };
       const target = { x: player.x + lead.x * 105, y: player.y + lead.y * 105 };
       const direction = normalize(target.x - enemy.x, target.y - enemy.y);
@@ -1338,7 +1486,10 @@ function updateZones(dt) {
     for (const enemy of enemies) {
       if (enemy.dead || enemy.spawnDelay > 0 || !inZone(enemy, zone)) continue;
       damageEnemy(enemy, zone.damage, zone.x, zone.y, zone.type === 'water' ? 8 : 0, zone.tag);
-      if (zone.type === 'water') enemy.slow = Math.max(enemy.slow, state.time + zone.slowDuration);
+      if (zone.type === 'water') {
+        enemy.slow = Math.max(enemy.slow, state.time + zone.slowDuration);
+        enemy.wetUntil = Math.max(enemy.wetUntil, state.time + zone.slowDuration + .7);
+      }
     }
   }
   zones = zones.filter(zone => zone.life > 0);
@@ -1369,15 +1520,15 @@ function updateProjectiles(dt) {
       if (enemy.dead || enemy.spawnDelay > 0) continue;
       if (dist2(projectile.x, projectile.y, enemy.x, enemy.y) >= (projectile.r + enemy.r) ** 2) continue;
 
-      const directTag = projectile.ultimate ? 'earthFinal' : 'boulder';
+      const directTag = projectile.ultimate ? 'earthFinalDirect' : 'boulder';
       damageEnemy(enemy, projectile.damage, projectile.x, projectile.y, projectile.ultimate ? 310 : 210, directTag);
       const explosionRadius = projectile.ultimate ? 155 : projectile.fire ? 112 : 0;
       if (explosionRadius > 0) {
         for (const other of enemies) {
           if (other.dead || other.spawnDelay > 0 || other === enemy) continue;
           if (dist2(projectile.x, projectile.y, other.x, other.y) <= explosionRadius ** 2) {
-            const splashTag = projectile.ultimate ? 'earthFinal' : 'explosion';
-            damageEnemy(other, projectile.damage * (projectile.ultimate ? .62 : .52), projectile.x, projectile.y, projectile.ultimate ? 260 : 170, splashTag);
+            const splashTag = projectile.ultimate ? 'earthFinalSplash' : 'explosion';
+            damageEnemy(other, projectile.damage * (projectile.ultimate ? .22 : .48), projectile.x, projectile.y, projectile.ultimate ? 210 : 150, splashTag);
           }
         }
       }
@@ -1418,7 +1569,7 @@ function updateBeam(dt, fire, ultimate) {
   if (castState.tick <= 0) {
     castState.tick += ultimate ? .075 : .1;
     const width = (ultimate ? 1.15 : .72) * PPM / 2;
-    const dps = ultimate ? 118 : fire ? 78 : 72;
+    const dps = ultimate ? 82 : fire ? 56 : 50;
     const tickDamage = dps * (ultimate ? .075 : .1);
     const hits = [];
     for (const enemy of enemies) {
@@ -1446,7 +1597,7 @@ function updateBeam(dt, fire, ultimate) {
           if (distanceSq < bestDistance) { bestDistance = distanceSq; best = other; }
         }
         if (best) {
-          damageEnemy(best, tickDamage * (ultimate ? .55 : .35), hit.x, hit.y, ultimate ? 28 : 12, ultimate ? 'lightningFinal' : 'lightning');
+          damageEnemy(best, tickDamage * (ultimate ? .42 : .28), hit.x, hit.y, ultimate ? 28 : 12, ultimate ? 'lightningFinal' : 'lightning');
           castState.arcs.push({ x: hit.x, y: hit.y, x2: best.x, y2: best.y });
           waves.push({ type: 'line', x: hit.x, y: hit.y, x2: best.x, y2: best.y, life: .11, max: .11, color: ultimate ? '#fff5ff' : '#d8c3ff', front: true });
         }
@@ -1467,76 +1618,99 @@ function updateBeam(dt, fire, ultimate) {
 function damageEnemy(enemy, amount, sourceX, sourceY, knock = 0, tag = 'generic') {
   if (enemy.dead || enemy.spawnDelay > 0) return 0;
 
-  const isPhysical = tag === 'boulder' || tag === 'earthFinal';
+  const isBoulder = tag === 'boulder';
+  const isEarthFinalDirect = tag === 'earthFinalDirect';
+  const isEarthFinalSplash = tag === 'earthFinalSplash';
+  const isPhysical = isBoulder || isEarthFinalDirect || isEarthFinalSplash;
   const isFire = tag === 'fire' || tag === 'fireFinal' || tag === 'fireBeam' || tag === 'explosion';
   const isWater = tag === 'water' || tag === 'waterFinal';
   const isWind = tag === 'wind' || tag === 'windFinal';
   const isLightning = tag === 'lightning' || tag === 'lightningFinal';
-  const isAoE = ['fire', 'fireFinal', 'water', 'waterFinal', 'explosion', 'windFinal', 'earthFinal'].includes(tag);
+  const isFinal = ['fireFinal', 'waterFinal', 'windFinal', 'lightningFinal', 'earthFinalDirect', 'earthFinalSplash'].includes(tag);
+  const isAoE = ['fire', 'fireFinal', 'water', 'waterFinal', 'explosion', 'windFinal', 'earthFinalSplash'].includes(tag);
+  const wasStaggered = enemy.stagger > 0;
   let multiplier = 1;
   let weak = false;
   let resisted = false;
+  let rawAmount = amount;
 
-  if (enemy.type === 'melee') {
-    if (isFire) { multiplier *= 1.58; weak = true; }
-    if (isWater && !tag.endsWith('Final')) { multiplier *= .7; resisted = true; }
-  } else if (enemy.type === 'tank') {
-    const shielded = state.time >= enemy.shieldBrokenUntil;
-    if (isPhysical) {
-      multiplier *= shielded ? 2.15 : 1.45;
-      weak = true;
-      if (shielded) breakArmor(enemy, 4.3);
-    } else if (shielded) {
+  if ((enemy.type === 'tank' || enemy.type === 'boss') && enemy.guard > 0) {
+    if (!isPhysical) {
       if (state.time - enemy.lastResistText > .62) {
-        texts.push({ x: enemy.x, y: enemy.y - 44, text: '元素傷害免疫', life: .82, max: .82, color: '#ffd18a' });
+        const label = enemy.type === 'boss' ? '相盾：元素傷害免疫' : '元素傷害免疫';
+        texts.push({ x: enemy.x, y: enemy.y - (enemy.type === 'boss' ? 78 : 44), text: label, life: .9, max: .9, color: enemy.type === 'boss' ? '#e6c6ff' : '#ffd18a' });
         enemy.lastResistText = state.time;
         if (state.time - state.lastImmuneToast > 1.45) {
-          toast('元素傷害免疫：使用 EEE／EEEE 岩石砲破界甲', true);
+          toast(enemy.type === 'boss' ? '裂界王相盾免疫元素：先用岩削盾，再切元素輸出' : '元素傷害免疫：岩石只負責削界甲，破甲後切元素', true);
           state.lastImmuneToast = state.time;
         }
-        waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.r + 8, life: .32, max: .32, color: '#e8d9bd', front: true });
+        waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.r + 10, life: .32, max: .32, color: enemy.type === 'boss' ? '#d39aff' : '#e8d9bd', front: true });
       }
       return 0;
-    } else {
-      multiplier *= 1.08;
     }
-  } else if (enemy.type === 'ranged') {
-    if (isLightning) { multiplier *= 1.85; weak = true; }
-    else if (isAoE) { multiplier *= .45; resisted = true; }
-  } else if (enemy.type === 'speed') {
-    if (isWind) {
-      multiplier *= 2.05;
+
+    const guardFactor = enemy.type === 'boss'
+      ? (isEarthFinalDirect ? 2.8 : isBoulder ? 1.8 : .22)
+      : (isEarthFinalDirect ? 1.75 : isBoulder ? 1.25 : .16);
+    const guardDamage = Math.min(enemy.guard, rawAmount * guardFactor);
+    enemy.guard = Math.max(0, enemy.guard - guardDamage);
+    weak = true;
+    rawAmount *= isEarthFinalSplash ? .03 : enemy.type === 'boss' ? .10 : .14;
+    if (state.time - enemy.lastGuardText > .25) {
+      texts.push({ x: enemy.x, y: enemy.y - 44, text: `界甲 -${Math.round(guardDamage)}`, life: .65, max: .65, color: '#f4cf75' });
+      enemy.lastGuardText = state.time;
+    }
+    if (enemy.guard <= 0) breakArmor(enemy, enemy.type === 'boss' ? 6.0 : 5.2, !isFinal);
+  } else if (enemy.type === 'tank' || enemy.type === 'boss') {
+    if (isPhysical) {
+      multiplier *= enemy.type === 'boss' ? .22 : .28;
+      resisted = true;
+    } else {
+      multiplier *= enemy.type === 'boss' ? 1.16 : 1.25;
+    }
+  } else if (enemy.type === 'melee') {
+    if (isPhysical) { multiplier *= .62; resisted = true; }
+    if (isFire) {
+      multiplier *= 1.25;
       weak = true;
-      enemy.stagger = Math.max(enemy.stagger, tag === 'windFinal' ? 1.05 : .75);
-      enemy.attack = null;
-      enemy.rush = null;
-    } else if (isAoE) {
-      multiplier *= .55;
+      triggerCounter(enemy, '火焰恐慌', .9, 18, isFinal, 2.5);
+    } else if (isWater && !isFinal) {
+      multiplier *= .78;
       resisted = true;
     }
-  } else if (enemy.type === 'boss') {
-    const shielded = state.time >= enemy.shieldBrokenUntil;
-    if (isPhysical) {
-      multiplier *= shielded ? 1.65 : 1.3;
+  } else if (enemy.type === 'ranged') {
+    const wardActive = state.time >= enemy.wardBrokenUntil;
+    if (isLightning) {
+      multiplier *= 1.28;
+      if (enemy.wetUntil > state.time) multiplier *= 1.12;
       weak = true;
-      if (shielded) breakArmor(enemy, 4.5);
-    } else if (shielded) {
-      if (state.time - enemy.lastResistText > .62) {
-        texts.push({ x: enemy.x, y: enemy.y - 78, text: '相盾：元素傷害免疫', life: .9, max: .9, color: '#e6c6ff' });
-        enemy.lastResistText = state.time;
-        if (state.time - state.lastImmuneToast > 1.45) {
-          toast('裂界王相盾免疫元素：先用 EEE／EEEE 破盾', true);
-          state.lastImmuneToast = state.time;
-        }
-        waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.r + 18, life: .38, max: .38, color: '#d39aff', front: true });
+      if (wardActive || enemy.attack) {
+        enemy.wardBrokenUntil = state.time + 3.0;
+        triggerCounter(enemy, '相盾過載', .85, 22, isFinal, 2.65);
       }
-      return 0;
+    } else if (wardActive) {
+      if (isPhysical) multiplier *= .38;
+      else if (isAoE) multiplier *= .45;
+      else multiplier *= .72;
+      resisted = true;
     } else {
-      multiplier *= 1.15;
+      multiplier *= 1.05;
+    }
+  } else if (enemy.type === 'speed') {
+    if (isWind) {
+      multiplier *= 1.24;
+      weak = true;
+      triggerCounter(enemy, '突進吹翻', isFinal ? 1.25 : 1.0, 24, isFinal, 2.5);
+    } else if (!wasStaggered) {
+      if (isPhysical) multiplier *= .28;
+      else if (isAoE) multiplier *= .45;
+      else multiplier *= .7;
+      resisted = true;
     }
   }
 
-  const dealt = Math.max(.1, amount * multiplier);
+  if (wasStaggered && !isPhysical) multiplier *= 1.2;
+  const dealt = Math.max(.1, rawAmount * multiplier);
   enemy.hp -= dealt;
   enemy.flash = .1;
   state.totalDamage += dealt;
@@ -1548,7 +1722,7 @@ function damageEnemy(enemy, amount, sourceX, sourceY, knock = 0, tag = 'generic'
   enemy.vy += normal.y * knock * knockResistance;
 
   if (weak && state.time - enemy.lastWeakText > .24) {
-    texts.push({ x: enemy.x, y: enemy.y - 38, text: `弱點 ${Math.round(dealt)}`, life: .72, max: .72, color: '#ffe68a' });
+    texts.push({ x: enemy.x, y: enemy.y - 38, text: `反制 ${Math.round(dealt)}`, life: .72, max: .72, color: '#ffe68a' });
     enemy.lastWeakText = state.time;
   } else if (resisted && state.time - enemy.lastResistText > .48) {
     texts.push({ x: enemy.x, y: enemy.y - 34, text: `抗性 ${Math.round(dealt)}`, life: .6, max: .6, color: '#aab5c0' });
@@ -1563,14 +1737,19 @@ function damageEnemy(enemy, amount, sourceX, sourceY, knock = 0, tag = 'generic'
   return dealt;
 }
 
-function breakArmor(enemy, duration) {
+function breakArmor(enemy, duration, rewardMomentum = true) {
+  if (enemy.shieldWasBroken) return;
+  enemy.guard = 0;
   enemy.shieldBrokenUntil = state.time + duration;
+  enemy.shieldWasBroken = true;
   enemy.attack = null;
-  enemy.stagger = Math.max(enemy.stagger, .5);
+  enemy.rush = null;
+  enemy.stagger = Math.max(enemy.stagger, .85);
   waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.r + 8, life: .62, max: .62, color: '#ffe09a', front: true });
   waves.push({ type: 'crack', x: enemy.x, y: enemy.y, r: enemy.type === 'boss' ? 125 : 78, life: .75, max: .75, color: '#ffe09a', front: false });
   burst(enemy.x, enemy.y, enemy.type === 'boss' ? 48 : 28, '#ffe3a4', enemy.type === 'boss' ? 260 : 190);
-  texts.push({ x: enemy.x, y: enemy.y - 58, text: '界甲破碎！', life: 1, max: 1, color: '#ffe69c' });
+  texts.push({ x: enemy.x, y: enemy.y - 58, text: '界甲破碎｜切換元素！', life: 1.15, max: 1.15, color: '#ffe69c' });
+  if (rewardMomentum) grantMomentum(enemy.type === 'boss' ? 35 : 30, '精準破甲', enemy, 3.0);
   state.shake = Math.max(state.shake, enemy.type === 'boss' ? 14 : 8);
   sfx('armorBreak');
 }
@@ -1581,7 +1760,7 @@ function killEnemy(enemy) {
   enemy.deathLife = enemy.type === 'boss' ? .85 : .35;
   state.kills += 1;
   if (enemy.type !== 'boss' && state.waveState === 'active') state.waveKilled += 1;
-  if (enemy.type !== 'boss') player.hp = Math.min(player.maxHp, player.hp + 4);
+  if (enemy.type !== 'boss') player.hp = Math.min(player.maxHp, player.hp + 2);
   burst(enemy.x, enemy.y, enemy.type === 'boss' ? 90 : 26, enemy.type === 'boss' ? '#cf83ff' : TYPE_STATS[enemy.type].color, enemy.type === 'boss' ? 360 : 210);
   waves.push({ type: 'circle', x: enemy.x, y: enemy.y, r: enemy.type === 'boss' ? 45 : 10, life: enemy.type === 'boss' ? .9 : .3, max: enemy.type === 'boss' ? .9 : .3, color: enemy.type === 'boss' ? '#bf82ff' : TYPE_STATS[enemy.type].color, front: true });
   sfx(enemy.type === 'boss' ? 'bossDeath' : 'kill');
@@ -1636,7 +1815,7 @@ function gameOver(victory = false) {
   ui.bossHud.classList.add('hidden');
   ui.endTitle.textContent = victory ? '裂界王擊破' : '撤離失敗';
   ui.endTitle.style.color = victory ? '#d6a3ff' : '#ff7882';
-  ui.result.innerHTML = `${victory ? '五波精英戰完成' : '存活'} <b>${formatTime(state.time)}</b><br>擊殺 <b>${state.kills}</b>　總傷害 <b>${Math.round(state.totalDamage)}</b><br>弱點命中 <b>${state.weakHits}</b>　施法失敗 <b>${state.failures}</b> / ${state.attempts}`;
+  ui.result.innerHTML = `${victory ? '五波反制戰完成' : '存活'} <b>${formatTime(state.time)}</b><br>擊殺 <b>${state.kills}</b>　總傷害 <b>${Math.round(state.totalDamage)}</b><br>成功反制 <b>${state.counters}</b>　終式 <b>${state.ultimateCasts}</b>　施法失敗 <b>${state.failures}</b> / ${state.attempts}`;
   setTimeout(() => ui.death.classList.remove('hidden'), 300);
   if (!victory) sfx('death');
 }
@@ -1657,18 +1836,21 @@ function updateUI() {
   ui.hpFill.style.width = `${hp * 100}%`;
   ui.hpFill.style.background = hp < .3 ? 'linear-gradient(90deg,#ef3f4e,#ff867e)' : 'linear-gradient(90deg,#34d17e,#87f0ad)';
   ui.hpText.textContent = `HP ${Math.ceil(player.hp)} / ${player.maxHp}`;
+  ui.momentumFill.style.width = `${clamp(state.momentum / MOMENTUM_MAX, 0, 1) * 100}%`;
+  ui.momentumFill.classList.toggle('ready', state.momentum >= ULTIMATE_COST);
+  ui.momentumText.textContent = `${Math.floor(state.momentum)} / ${MOMENTUM_MAX} · 終式 ${ULTIMATE_COST}`;
   ui.timeText.textContent = formatTime(state.time);
-  ui.stats.textContent = `擊殺 ${state.kills}　傷害 ${Math.round(state.totalDamage)}　弱點 ${state.weakHits}　敵人 ${enemies.filter(enemy => !enemy.dead).length}`;
+  ui.stats.textContent = `擊殺 ${state.kills}　反制 ${state.counters}　終式 ${state.ultimateCasts}　敵人 ${enemies.filter(enemy => !enemy.dead).length}`;
 
   if (state.waveState === 'active') ui.waveText.textContent = `第 ${state.wave}/5 波 · ${WAVE_NAMES[state.wave]}　${state.waveKilled}/${state.waveQuota}`;
   else if (state.waveState === 'prep') ui.waveText.textContent = `準備第 ${state.wave + 1}/5 波 · ${Math.max(0, state.waveTimer).toFixed(1)}s`;
   else if (state.waveState === 'bossPrep') ui.waveText.textContent = `裂界王即將降臨 · ${Math.max(0, state.waveTimer).toFixed(1)}s`;
-  else if (state.waveState === 'boss') ui.waveText.textContent = 'BOSS · 裂界王（岩石砲破盾）';
+  else if (state.waveState === 'boss') ui.waveText.textContent = 'BOSS · 裂界王（岩削盾 → 元素追擊）';
 
   if (state.boss && !state.boss.dead) {
     const fraction = clamp(state.boss.hp / state.boss.maxHp, 0, 1);
     ui.bossFill.style.width = `${fraction * 100}%`;
-    const shield = state.time >= state.boss.shieldBrokenUntil ? '界甲完整 · 元素免疫' : `破甲 ${Math.max(0, state.boss.shieldBrokenUntil - state.time).toFixed(1)}s · 元素可傷`;
+    const shield = state.boss.guard > 0 ? `相盾 ${Math.ceil(state.boss.guard)} / ${Math.ceil(state.boss.maxGuard)} · 元素免疫` : `破盾 ${Math.max(0, state.boss.shieldBrokenUntil - state.time).toFixed(1)}s · 岩抗／元素增傷`;
     ui.bossHp.textContent = `${Math.ceil(state.boss.hp)} / ${Math.ceil(state.boss.maxHp)} · ${shield}`;
   }
 }
@@ -1900,7 +2082,7 @@ function drawEnemy(enemy) {
   ctx.globalAlpha = alpha;
 
   if (enemy.type === 'tank' || enemy.type === 'boss') {
-    const shielded = state.time >= enemy.shieldBrokenUntil;
+    const shielded = enemy.guard > 0;
     if (shielded && !enemy.dead) {
       ctx.strokeStyle = enemy.type === 'boss' ? 'rgba(205,135,255,.8)' : 'rgba(246,199,91,.85)';
       ctx.lineWidth = enemy.type === 'boss' ? 7 : 5;
@@ -1912,7 +2094,7 @@ function drawEnemy(enemy) {
     }
   }
 
-  if (enemy.type === 'ranged' && !enemy.dead) {
+  if (enemy.type === 'ranged' && !enemy.dead && state.time >= enemy.wardBrokenUntil) {
     ctx.strokeStyle = 'rgba(98,218,255,.72)';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -1943,6 +2125,12 @@ function drawEnemy(enemy) {
   ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
   ctx.fillStyle = stats.color;
   ctx.fillRect(barX, barY, barWidth * clamp(enemy.hp / enemy.maxHp, 0, 1), barHeight);
+  if (enemy.maxGuard > 0 && enemy.guard > 0) {
+    ctx.fillStyle = 'rgba(0,0,0,.78)';
+    ctx.fillRect(barX - 1, barY + 8, barWidth + 2, 5);
+    ctx.fillStyle = enemy.type === 'boss' ? '#d79aff' : '#edc768';
+    ctx.fillRect(barX, barY + 9, barWidth * clamp(enemy.guard / enemy.maxGuard, 0, 1), 3);
+  }
 
   if (enemy.type !== 'boss') {
     ctx.save();
@@ -1955,10 +2143,13 @@ function drawEnemy(enemy) {
     ctx.fillText(stats.label, enemy.x, barY - 9);
     ctx.font = '800 10px sans-serif';
     ctx.fillStyle = '#ffe9ac';
-    const tankShielded = enemy.type === 'tank' && state.time >= enemy.shieldBrokenUntil;
+    const tankShielded = enemy.type === 'tank' && enemy.guard > 0;
+    const rangedWard = enemy.type === 'ranged' && state.time >= enemy.wardBrokenUntil;
     const weakLine = enemy.type === 'tank'
-      ? (tankShielded ? '元素免疫｜EEE 破甲' : '界甲破碎｜元素可傷')
-      : `弱：${stats.weak}`;
+      ? (tankShielded ? `界甲 ${Math.ceil(enemy.guard)}｜岩削甲` : '破甲｜岩抗・切元素')
+      : enemy.type === 'ranged'
+        ? (rangedWard ? '雷擊過載相盾' : '相盾關閉｜追擊')
+        : `反制：${stats.weak}`;
     ctx.strokeText(weakLine, enemy.x, barY + 18);
     ctx.fillText(weakLine, enemy.x, barY + 18);
     ctx.restore();
@@ -2307,6 +2498,8 @@ function sfx(name) {
     case 'death': tone(180, .6, 'sawtooth', .045, 35); break;
     case 'enemyShot': tone(260, .06, 'triangle', .014, 420); break;
     case 'armorBreak': tone(180, .22, 'square', .05, 720); break;
+    case 'counter': tone(740, .12, 'triangle', .035, 1120); break;
+    case 'momentumReady': tone(520, .28, 'triangle', .04, 1180); break;
     case 'boss': tone(72, .5, 'sawtooth', .055, 145); break;
     case 'bossShot': tone(220, .08, 'square', .018, 420); break;
     case 'bossPulse': tone(95, .28, 'sawtooth', .045, 55); break;
@@ -2327,6 +2520,10 @@ window.__SR_TEST__ = {
     wave: state?.wave,
     waveState: state?.waveState,
     playerHp: player?.hp,
+    momentum: state?.momentum,
+    counters: state?.counters,
+    ultimateCasts: state?.ultimateCasts,
+    activeEnemyAttacks: typeof activeEnemyAttackCount === 'function' ? activeEnemyAttackCount() : 0,
     playerX: player?.x,
     playerY: player?.y,
     moveTarget: player?.moveTarget ? { ...player.moveTarget } : null,
@@ -2337,9 +2534,10 @@ window.__SR_TEST__ = {
     projectiles: projectiles.map(projectile => ({ ultimate: !!projectile.ultimate, fire: !!projectile.fire })),
     waveTypes: waves.map(wave => wave.type),
     texts: texts.map(item => item.text),
-    enemies: enemies.filter(enemy => !enemy.dead).map(enemy => ({ type: enemy.type, hp: enemy.hp, spawnDelay: enemy.spawnDelay }))
+    enemies: enemies.filter(enemy => !enemy.dead).map(enemy => ({ id: enemy.id, type: enemy.type, hp: enemy.hp, guard: enemy.guard, maxGuard: enemy.maxGuard, stagger: enemy.stagger, wardBrokenUntil: enemy.wardBrokenUntil, spawnDelay: enemy.spawnDelay }))
   }),
   setBuffer: code => { buffer = String(code).split('').filter(key => ELEMENTS[key]).slice(0, 4); updateBufferUI(); },
+  setMomentum: amount => { state.momentum = clamp(Number(amount), 0, MOMENTUM_MAX); state.ultimateReadyNotified = state.momentum >= ULTIMATE_COST; updateUI(); },
   castExternal: () => startExternal('test'),
   releaseExternal: () => endExternal('test'),
   castSelf: () => trySelfCast(),
@@ -2347,7 +2545,9 @@ window.__SR_TEST__ = {
   purge: () => { enemies = []; projectiles = []; enemyShots = []; zones = []; particles = []; texts = []; waves = []; state.boss = null; },
   setPlayer: (x, y) => { player.x = Number(x); player.y = Number(y); player.moveTarget = null; },
   spawnEnemy: (type, x, y) => { const enemy = makeEnemy(String(type), { x: Number(x), y: Number(y) }); enemy.spawnDelay = 0; enemy.spawnMax = 0; enemies.push(enemy); return enemy.id; },
+  damageEnemyById: (id, tag, amount = 100) => { const enemy = enemies.find(item => item.id === Number(id)); if (!enemy) return null; const before = { hp: enemy.hp, guard: enemy.guard }; const dealt = damageEnemy(enemy, Number(amount), player.x, player.y, 0, String(tag)); return { id: enemy.id, type: enemy.type, before, after: { hp: enemy.hp, guard: enemy.guard }, dealt, stagger: enemy.stagger, momentum: state.momentum }; },
   freezeAndRender: () => { state.paused = true; render(); },
+  step: (dt = .016) => { const wasPaused = state.paused; state.paused = false; update(Number(dt)); state.paused = wasPaused; render(); return window.__SR_TEST__.snapshot(); },
   testDamage: (type, tag, amount = 100) => {
     const enemy = makeEnemy(type, { x: player.x + 180, y: player.y });
     enemy.spawnDelay = 0;
@@ -2355,7 +2555,7 @@ window.__SR_TEST__ = {
     enemies.push(enemy);
     const before = enemy.hp;
     const dealt = damageEnemy(enemy, Number(amount), player.x, player.y, 0, String(tag));
-    return { type, tag, before, after: enemy.hp, dealt, armorBroken: state.time < enemy.shieldBrokenUntil, immunityText: texts.some(item => item.text.includes('元素傷害免疫')) };
+    return { type, tag, before, after: enemy.hp, guard: enemy.guard, maxGuard: enemy.maxGuard, dealt, armorBroken: enemy.guard <= 0, immunityText: texts.some(item => item.text.includes('元素傷害免疫')), momentum: state.momentum };
   },
   spawnBossNow: () => { enemies = []; spawnBoss(); state.boss.spawnDelay = 0; state.boss.spawnMax = 0; return state.boss.id; }
 };
